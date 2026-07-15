@@ -30,6 +30,8 @@ Page({
     try {
       const [stats, sessions] = await Promise.all([listExerciseStats(), listRecentSessions(100)]);
       const mapped = stats.map((item) => Object.assign({}, item, {
+        display_name: item.exercise_name || item.exercise_id,
+        display_last_performed: dateText(item.last_performed_at) || '-',
         last_performed_at_text: dateText(item.last_performed_at),
       }));
       const summary = mapped.reduce((acc, item) => {

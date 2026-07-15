@@ -49,6 +49,49 @@ for (const jsonFile of ['project.config.json', 'cloudbaserc.json', 'sitemap.json
   }
 }
 
+function readJson(file) {
+  return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+}
+
+function assertRegisteredComponent(pageJsonFile, tagName, componentPath) {
+  const json = readJson(pageJsonFile);
+  const components = json.usingComponents || {};
+  if (components[tagName] !== componentPath) {
+    console.error(`Missing component registration in ${pageJsonFile}: ${tagName} -> ${componentPath}`);
+    failed = true;
+  }
+}
+
+assertRegisteredComponent('miniprogram/pages/training/training.json', 'empty-state', '/components/empty-state/empty-state');
+assertRegisteredComponent('miniprogram/pages/training/training.json', 'exercise-picker', '/components/exercise-picker/exercise-picker');
+assertRegisteredComponent('miniprogram/pages/exercises/exercises.json', 'empty-state', '/components/empty-state/empty-state');
+assertRegisteredComponent('miniprogram/pages/profile/profile.json', 'empty-state', '/components/empty-state/empty-state');
+assertRegisteredComponent('miniprogram/pages/session-detail/session-detail.json', 'empty-state', '/components/empty-state/empty-state');
+assertRegisteredComponent('miniprogram/components/exercise-picker/exercise-picker.json', 'empty-state', '/components/empty-state/empty-state');
+
+const riskyWxmlPattern = /{{[^}]*\.(indexOf|includes|map|filter|reduce)\(/;
+const wxmlFiles = fs.readdirSync(path.join(root, 'miniprogram/pages'), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => `miniprogram/pages/${entry.name}/${entry.name}.wxml`)
+  .concat(['miniprogram/components/exercise-picker/exercise-picker.wxml']);
+for (const file of wxmlFiles) {
+  const content = fs.readFileSync(path.join(root, file), 'utf8');
+  if (riskyWxmlPattern.test(content)) {
+    console.error(`Risky WXML method call expression found: ${file}`);
+    failed = true;
+  }
+}
+
+const envId = readJson('cloudbaserc.json').envId;
+const appJs = fs.readFileSync(path.join(root, 'miniprogram/app.js'), 'utf8');
+if (!appJs.includes(`env: '${envId}'`) && !appJs.includes(`env: "${envId}"`)) {
+  const envConst = appJs.match(/const\s+ENV_ID\s*=\s*['\"]([^'\"]+)['\"]/);
+  if (!envConst || envConst[1] !== envId) {
+    console.error(`CloudBase env mismatch: cloudbaserc.json uses ${envId}, but miniprogram/app.js does not.`);
+    failed = true;
+  }
+}
+
 if (failed) {
   process.exit(1);
 }

@@ -21,6 +21,13 @@ const ENERGY_OPTIONS = [
   { value: 'high', label: '今天很猛' }
 ];
 
+const INTENT_OPTIONS = [
+  { value: 'breakthrough', label: '突破 PR' },
+  { value: 'maintain', label: '维稳巩固' },
+  { value: 'deload', label: '减量恢复' },
+  { value: 'technique', label: '技术打磨' }
+];
+
 const BODY_PART_OPTIONS = ['胸部', '背部', '腿部', '肩部', '手臂', '核心', '全身'];
 const EQUIPMENT_OPTIONS = ['杠铃', '哑铃', '绳索', '固定器械', '自重', '弹力带'];
 
@@ -29,6 +36,7 @@ module.exports = {
   GOAL_OPTIONS,
   LOCATION_OPTIONS,
   ENERGY_OPTIONS,
+  INTENT_OPTIONS,
   BODY_PART_OPTIONS,
   EQUIPMENT_OPTIONS,
 };

@@ -7,8 +7,8 @@
     <input class="search" placeholder="搜索动作/肌群" value="{{keyword}}" bindinput="onKeywordInput" confirm-type="search" />
     <scroll-view class="list" scroll-y="true">
       <view wx:for="{{items}}" wx:key="_id" class="item" data-id="{{item._id}}" bindtap="onSelect">
-        <view class="item-name">{{item.name_zh || item.name}}</view>
-        <view class="item-meta">{{item.body_part_zh || item.body_part}} · {{item.equipment_zh || item.equipment}}</view>
+        <view class="item-name">{{item.display_name}}</view>
+        <view class="item-meta">{{item.display_body_part}} · {{item.display_equipment}}</view>
       </view>
       <empty-state wx:if="{{items.length === 0}}" title="没找到动作" desc="换个关键词试试" />
     </scroll-view>

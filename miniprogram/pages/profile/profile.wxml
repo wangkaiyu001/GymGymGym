@@ -32,8 +32,8 @@
     <view wx:for="{{stats}}" wx:key="_id" class="stat-row">
       <view class="row between">
         <view>
-          <view class="stat-name">{{item.exercise_name || item.exercise_id}}</view>
-          <view class="stat-meta">最近 {{item.last_performed_at_text || '-'}}</view>
+          <view class="stat-name">{{item.display_name}}</view>
+          <view class="stat-meta">最近 {{item.display_last_performed}}</view>
         </view>
         <view class="stat-pr">{{item.max_weight_kg}} kg</view>
       </view>

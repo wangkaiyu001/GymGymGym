@@ -3,6 +3,8 @@ const {
   LOCATION_OPTIONS,
   BODY_PART_OPTIONS,
   EQUIPMENT_OPTIONS,
+  ENERGY_OPTIONS,
+  INTENT_OPTIONS,
 } = require('../../utils/constants');
 const { formatDate, toNumber } = require('../../utils/format');
 const {
@@ -13,6 +15,39 @@ const {
   addSet,
   listRecentSessions,
 } = require('../../utils/db');
+
+function indexOfValue(options, value) {
+  const index = options.findIndex((item) => item.value === value);
+  return index >= 0 ? index : 0;
+}
+
+function mapSelectableOptions(options, selected) {
+  const selectedList = selected || [];
+  return options.map((label) => ({
+    label,
+    value: label,
+    selected: selectedList.indexOf(label) >= 0,
+  }));
+}
+
+function buildIntent(form) {
+  const timeLimit = String(form.time_limit_min || '').trim();
+  return {
+    focus_body_parts: form.focus_body_parts,
+    available_equipment: form.available_equipment,
+    training_intent: form.training_intent,
+    energy_level: form.energy_level,
+    time_limit_min: timeLimit ? toNumber(timeLimit, null) : null,
+    note: form.note,
+  };
+}
+
+function mapBlocksForView(blocks) {
+  return blocks.map((block, blockIndex) => Object.assign({}, block, {
+    block_index: blockIndex,
+    sets: block.sets.map((set) => Object.assign({}, set, { block_index: blockIndex })),
+  }));
+}
 
 function makeSet(exercise, roundIndex, exerciseOrder, localIndex) {
   return {
@@ -34,6 +69,9 @@ Page({
   data: {
     user: null,
     sessionId: '',
+    isStarting: false,
+    isSaving: false,
+    startDisabled: false,
     blocks: [],
     recentSessions: [],
     pickerVisible: false,
@@ -44,18 +82,27 @@ Page({
       date: formatDate(),
       location: LOCATION_OPTIONS[0].value,
       goal_type: GOAL_OPTIONS[0].value,
+      training_intent: INTENT_OPTIONS[0].value,
+      energy_level: ENERGY_OPTIONS[1].value,
+      time_limit_min: '',
       focus_body_parts: [],
       available_equipment: [],
       note: '',
     },
     goalOptions: GOAL_OPTIONS,
     locationOptions: LOCATION_OPTIONS,
+    energyOptions: ENERGY_OPTIONS,
+    intentOptions: INTENT_OPTIONS,
     goalLabels: GOAL_OPTIONS.map((item) => item.label),
     locationLabels: LOCATION_OPTIONS.map((item) => item.label),
+    energyLabels: ENERGY_OPTIONS.map((item) => item.label),
+    intentLabels: INTENT_OPTIONS.map((item) => item.label),
     goalIndex: 0,
     locationIndex: 0,
-    bodyPartOptions: BODY_PART_OPTIONS,
-    equipmentOptions: EQUIPMENT_OPTIONS,
+    energyIndex: 1,
+    intentIndex: 0,
+    bodyPartOptions: mapSelectableOptions(BODY_PART_OPTIONS, []),
+    equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, []),
   },
 
   onLoad() {
@@ -70,7 +117,21 @@ Page({
     try {
       const context = await getUserContext();
       getApp().globalData.userContext = context;
-      this.setData({ user: context.user });
+      const user = context.user || {};
+      const patch = { user };
+      if (user.default_goal) {
+        patch['form.goal_type'] = user.default_goal;
+        patch.goalIndex = indexOfValue(GOAL_OPTIONS, user.default_goal);
+      }
+      if (user.default_location) {
+        patch['form.location'] = user.default_location;
+        patch.locationIndex = indexOfValue(LOCATION_OPTIONS, user.default_location);
+      }
+      if (user.available_equipment_home && user.available_equipment_home.length > 0) {
+        patch['form.available_equipment'] = user.available_equipment_home;
+        patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, user.available_equipment_home);
+      }
+      this.setData(patch);
     } catch (error) {
       wx.showToast({ title: '云函数未部署', icon: 'none' });
       console.error(error);
@@ -108,10 +169,29 @@ Page({
     });
   },
 
+  onIntentChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({
+      intentIndex: index,
+      'form.training_intent': INTENT_OPTIONS[index].value,
+    });
+  },
+
+  onEnergyChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({
+      energyIndex: index,
+      'form.energy_level': ENERGY_OPTIONS[index].value,
+    });
+  },
+
   toggleListValue(listKey, value) {
     const list = this.data.form[listKey];
     const next = list.indexOf(value) >= 0 ? list.filter((item) => item !== value) : list.concat(value);
-    this.setData({ [`form.${listKey}`]: next });
+    const patch = { [`form.${listKey}`]: next };
+    if (listKey === 'focus_body_parts') patch.bodyPartOptions = mapSelectableOptions(BODY_PART_OPTIONS, next);
+    if (listKey === 'available_equipment') patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, next);
+    this.setData(patch);
   },
 
   toggleBodyPart(event) {
@@ -124,6 +204,8 @@ Page({
 
   async ensureSession() {
     if (this.data.sessionId) return this.data.sessionId;
+    if (this.data.isStarting) return '';
+    this.setData({ isStarting: true, startDisabled: true });
     wx.showLoading({ title: '创建中' });
     try {
       const form = this.data.form;
@@ -133,16 +215,10 @@ Page({
         location: form.location,
         goal_type: form.goal_type,
         mode: 'manual',
-        intent: {
-          focus_body_parts: form.focus_body_parts,
-          available_equipment: form.available_equipment,
-          energy_level: 'normal',
-          time_limit_min: null,
-          note: form.note,
-        },
+        intent: buildIntent(form),
         notes: form.note,
       });
-      this.setData({ sessionId });
+      this.setData({ sessionId, startDisabled: true });
       wx.showToast({ title: '已开始', icon: 'success' });
       return sessionId;
     } catch (error) {
@@ -150,6 +226,10 @@ Page({
       console.error(error);
       return '';
     } finally {
+      this.setData({
+        isStarting: false,
+        startDisabled: Boolean(this.data.sessionId),
+      });
       wx.hideLoading();
     }
   },
@@ -191,16 +271,30 @@ Page({
     const block = {
       local_id: `block-${Date.now()}`,
       order: blockIndex + 1,
+      block_index: blockIndex,
       type,
       title,
       exercises,
       sets,
     };
     this.setData({
-      blocks: this.data.blocks.concat(block),
+      blocks: mapBlocksForView(this.data.blocks.concat(block)),
       pickerVisible: false,
       pendingExercises: [],
     });
+  },
+
+  deleteBlock(event) {
+    const blockIndex = Number(event.currentTarget.dataset.index);
+    const blocks = this.data.blocks.slice();
+    const block = blocks[blockIndex];
+    if (block.remote_id) {
+      wx.showToast({ title: '已保存的训练块暂不支持删除', icon: 'none' });
+      return;
+    }
+    blocks.splice(blockIndex, 1);
+    const next = blocks.map((item, index) => Object.assign({}, item, { order: index + 1 }));
+    this.setData({ blocks: mapBlocksForView(next) });
   },
 
   addRound(event) {
@@ -211,7 +305,7 @@ Page({
     const newSets = block.exercises.map((exercise, index) => makeSet(exercise, roundIndex, index + 1, block.sets.length + index));
     block.sets = block.sets.concat(newSets);
     blocks[blockIndex] = block;
-    this.setData({ blocks });
+    this.setData({ blocks: mapBlocksForView(blocks) });
   },
 
   onSetInput(event) {
@@ -221,7 +315,22 @@ Page({
     const blocks = this.data.blocks.slice();
     const set = blocks[blockIndex].sets.find((item) => item.set_index_local === setIndex);
     set[key] = event.detail.value;
-    this.setData({ blocks });
+    this.setData({ blocks: mapBlocksForView(blocks) });
+  },
+
+  deleteSet(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const setIndex = Number(event.currentTarget.dataset.setIndex);
+    const blocks = this.data.blocks.slice();
+    const block = blocks[blockIndex];
+    const set = block.sets.find((item) => item.set_index_local === setIndex);
+    if (set && set.remote_id) {
+      wx.showToast({ title: '已保存的组暂不支持删除', icon: 'none' });
+      return;
+    }
+    block.sets = block.sets.filter((item) => item.set_index_local !== setIndex);
+    blocks[blockIndex] = block;
+    this.setData({ blocks: mapBlocksForView(blocks) });
   },
 
   toggleSetFlag(event) {
@@ -231,28 +340,54 @@ Page({
     const blocks = this.data.blocks.slice();
     const set = blocks[blockIndex].sets.find((item) => item.set_index_local === setIndex);
     set[key] = !set[key];
-    this.setData({ blocks });
+    this.setData({ blocks: mapBlocksForView(blocks) });
   },
 
   async saveWorkout() {
+    if (this.data.isSaving) return;
+    if (this.data.blocks.length === 0) {
+      wx.showToast({ title: '请先添加训练块', icon: 'none' });
+      return;
+    }
+    this.setData({ isSaving: true });
     const sessionId = await this.ensureSession();
-    if (!sessionId) return;
+    if (!sessionId) {
+      this.setData({ isSaving: false });
+      return;
+    }
     wx.showLoading({ title: '保存中' });
     try {
-      for (let i = 0; i < this.data.blocks.length; i += 1) {
-        const block = this.data.blocks[i];
-        const blockId = await addBlock({
-          session_id: sessionId,
-          order: block.order,
-          type: block.type,
-          title: block.title,
-          exercise_ids: block.exercises.map((item) => item._id),
-          rest_seconds_between_rounds: 90,
-          notes: '',
-        });
+      const form = this.data.form;
+      await updateSession(sessionId, {
+        date: form.date,
+        title: form.title || '今日训练',
+        location: form.location,
+        goal_type: form.goal_type,
+        intent: buildIntent(form),
+        notes: form.note,
+      });
+      const blocks = this.data.blocks.slice();
+      for (let i = 0; i < blocks.length; i += 1) {
+        const block = blocks[i];
+        let blockId = block.remote_id;
+        if (!blockId) {
+          blockId = await addBlock({
+            session_id: sessionId,
+            order: block.order,
+            type: block.type,
+            title: block.title,
+            exercise_ids: block.exercises.map((item) => item._id),
+            rest_seconds_between_rounds: 90,
+            notes: '',
+          });
+          block.remote_id = blockId;
+          blocks[i] = block;
+          this.setData({ blocks: mapBlocksForView(blocks) });
+        }
         for (let j = 0; j < block.sets.length; j += 1) {
           const set = block.sets[j];
-          await addSet({
+          if (set.remote_id) continue;
+          const setId = await addSet({
             session_id: sessionId,
             block_id: blockId,
             exercise_id: set.exercise_id,
@@ -268,6 +403,10 @@ Page({
             rest_seconds_after: null,
             notes: '',
           });
+          set.remote_id = setId;
+          block.sets[j] = set;
+          blocks[i] = block;
+          this.setData({ blocks: mapBlocksForView(blocks) });
         }
       }
       await updateSession(sessionId, {
@@ -280,12 +419,13 @@ Page({
         console.warn('统计重算失败，可稍后手动重试', error);
       }
       wx.showToast({ title: '已保存', icon: 'success' });
-      this.setData({ sessionId: '', blocks: [] });
+      this.setData({ sessionId: '', blocks: [], startDisabled: false });
       this.loadRecentSessions();
     } catch (error) {
       wx.showToast({ title: '保存失败', icon: 'none' });
       console.error(error);
     } finally {
+      this.setData({ isSaving: false });
       wx.hideLoading();
     }
   },

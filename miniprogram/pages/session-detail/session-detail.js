@@ -25,11 +25,14 @@ Page({
         }
       }
       const blocks = bundle.blocks.map((block) => Object.assign({}, block, {
+        display_type: block.type === 'superset' ? '超级组' : '普通组',
         sets: bundle.sets
           .filter((set) => set.block_id === block._id)
-          .map((set) => Object.assign({}, set, { exercise_name: names[set.exercise_id] })),
+          .map((set) => Object.assign({}, set, { exercise_name: names[set.exercise_id] || set.exercise_id })),
       }));
-      this.setData({ session: bundle.session || {}, blocks });
+      const session = bundle.session || {};
+      session.display_title = session.title || '训练详情';
+      this.setData({ session, blocks });
     } catch (error) {
       wx.showToast({ title: '加载失败', icon: 'none' });
       console.error(error);

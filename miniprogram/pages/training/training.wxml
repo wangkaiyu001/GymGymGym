@@ -28,23 +28,41 @@
         </picker>
       </view>
     </view>
+    <view class="field two-col">
+      <view>
+        <view class="label">今天策略</view>
+        <picker range="{{intentLabels}}" value="{{intentIndex}}" bindchange="onIntentChange">
+          <view class="picker-like">{{intentLabels[intentIndex]}}</view>
+        </picker>
+      </view>
+      <view>
+        <view class="label">身体状态</view>
+        <picker range="{{energyLabels}}" value="{{energyIndex}}" bindchange="onEnergyChange">
+          <view class="picker-like">{{energyLabels[energyIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">可用时间（分钟）</view>
+      <input class="input" type="number" value="{{form.time_limit_min}}" data-key="time_limit_min" bindinput="onFormInput" placeholder="例如 45，不填也可以" />
+    </view>
     <view class="field">
       <view class="label">今天想练什么</view>
       <view class="chip-list">
-        <view wx:for="{{bodyPartOptions}}" wx:key="*this" class="chip {{form.focus_body_parts.indexOf(item) >= 0 ? 'active' : ''}}" data-value="{{item}}" bindtap="toggleBodyPart">{{item}}</view>
+        <view wx:for="{{bodyPartOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="toggleBodyPart">{{item.label}}</view>
       </view>
     </view>
     <view class="field">
       <view class="label">场地里有什么器材</view>
       <view class="chip-list">
-        <view wx:for="{{equipmentOptions}}" wx:key="*this" class="chip {{form.available_equipment.indexOf(item) >= 0 ? 'active' : ''}}" data-value="{{item}}" bindtap="toggleEquipment">{{item}}</view>
+        <view wx:for="{{equipmentOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="toggleEquipment">{{item.label}}</view>
       </view>
     </view>
     <view class="field">
       <view class="label">备注</view>
       <textarea class="textarea" value="{{form.note}}" data-key="note" bindinput="onFormInput" placeholder="今天状态、时间限制、突破/维稳想法" />
     </view>
-    <button class="btn btn-primary" bindtap="ensureSession">{{sessionId ? '训练已开始' : '开始训练'}}</button>
+    <button class="btn btn-primary" loading="{{isStarting}}" disabled="{{startDisabled}}" bindtap="ensureSession">{{sessionId ? '训练已开始' : '开始训练'}}</button>
   </view>
 
   <view class="card">
@@ -62,25 +80,29 @@
           <view class="block-title">{{item.title}}</view>
           <view class="block-meta">{{item.type === 'superset' ? '超级组' : '普通组'}} · {{item.exercises.length}} 个动作</view>
         </view>
-        <button class="small-btn ghost" data-index="{{index}}" bindtap="addRound">加一轮</button>
+        <view class="mini-actions">
+          <button class="small-btn ghost" data-index="{{item.block_index}}" bindtap="addRound">加一轮</button>
+          <button class="small-btn danger" data-index="{{item.block_index}}" bindtap="deleteBlock">删除块</button>
+        </view>
       </view>
       <view wx:for="{{item.sets}}" wx:for-item="set" wx:key="local_id" class="set-line">
         <view class="set-name">{{set.exercise_name}}</view>
         <view class="set-inputs">
-          <input class="set-input" type="digit" value="{{set.weight_kg}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="weight_kg" bindinput="onSetInput" />
+          <input class="set-input" type="digit" value="{{set.weight_kg}}" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" data-key="weight_kg" bindinput="onSetInput" />
           <text>kg</text>
-          <input class="set-input" type="number" value="{{set.reps}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="reps" bindinput="onSetInput" />
+          <input class="set-input" type="number" value="{{set.reps}}" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" data-key="reps" bindinput="onSetInput" />
           <text>次</text>
-          <input class="set-input small" type="digit" value="{{set.rpe}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="rpe" bindinput="onSetInput" />
+          <input class="set-input small" type="digit" value="{{set.rpe}}" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" data-key="rpe" bindinput="onSetInput" />
           <text>RPE</text>
         </view>
         <view class="row set-flags">
-          <view class="flag {{set.is_warmup ? 'active' : ''}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="is_warmup" bindtap="toggleSetFlag">热身</view>
-          <view class="flag {{set.is_failure ? 'active' : ''}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="is_failure" bindtap="toggleSetFlag">力竭</view>
+          <view class="flag {{set.is_warmup ? 'active' : ''}}" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" data-key="is_warmup" bindtap="toggleSetFlag">热身</view>
+          <view class="flag {{set.is_failure ? 'active' : ''}}" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" data-key="is_failure" bindtap="toggleSetFlag">力竭</view>
+          <view class="flag danger" data-block-index="{{set.block_index}}" data-set-index="{{set.set_index_local}}" bindtap="deleteSet">删组</view>
         </view>
       </view>
     </view>
-    <button wx:if="{{blocks.length > 0}}" class="btn btn-primary finish" bindtap="saveWorkout">保存并结束训练</button>
+    <button wx:if="{{blocks.length > 0}}" class="btn btn-primary finish" loading="{{isSaving}}" disabled="{{isSaving}}" bindtap="saveWorkout">{{isSaving ? '保存中...' : '保存并结束训练'}}</button>
   </view>
 
   <view class="card">

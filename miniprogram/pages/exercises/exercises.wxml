@@ -6,13 +6,13 @@
     <scroll-view scroll-x="true" class="h-scroll">
       <view class="filter-row">
         <view class="chip {{!bodyPart ? 'active' : ''}}" data-value="" bindtap="selectBodyPart">全部部位</view>
-        <view wx:for="{{bodyPartOptions}}" wx:key="*this" class="chip {{bodyPart === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectBodyPart">{{item}}</view>
+        <view wx:for="{{bodyPartOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectBodyPart">{{item.label}}</view>
       </view>
     </scroll-view>
     <scroll-view scroll-x="true" class="h-scroll">
       <view class="filter-row">
         <view class="chip {{!equipment ? 'active' : ''}}" data-value="" bindtap="selectEquipment">全部器材</view>
-        <view wx:for="{{equipmentOptions}}" wx:key="*this" class="chip {{equipment === item ? 'active' : ''}}" data-value="{{item}}" bindtap="selectEquipment">{{item}}</view>
+        <view wx:for="{{equipmentOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="selectEquipment">{{item.label}}</view>
       </view>
     </scroll-view>
   </view>
@@ -21,12 +21,12 @@
   <view wx:for="{{items}}" wx:key="_id" class="card exercise-card" data-id="{{item._id}}" bindtap="showDetail">
     <view class="row between">
       <view>
-        <view class="exercise-name">{{item.name_zh || item.name}}</view>
+        <view class="exercise-name">{{item.display_name}}</view>
         <view class="exercise-en">{{item.name}}</view>
       </view>
-      <view class="tag">{{item.equipment_zh || item.equipment}}</view>
+      <view class="tag">{{item.display_equipment}}</view>
     </view>
-    <view class="meta">{{item.body_part_zh || item.body_part}} · {{item.target}}</view>
-    <view class="steps" wx:if="{{item.instruction_steps && item.instruction_steps.length}}">{{item.instruction_steps[0]}}</view>
+    <view class="meta">{{item.display_body_part}} · {{item.target}}</view>
+    <view class="steps" wx:if="{{item.first_step}}">{{item.first_step}}</view>
   </view>
 </view>

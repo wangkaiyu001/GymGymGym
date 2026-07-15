@@ -1,6 +1,6 @@
 <view class="container">
   <view class="card">
-    <view class="title">{{session.title || '训练详情'}}</view>
+    <view class="title">{{session.display_title}}</view>
     <view class="subtitle">{{session.date}} · {{session.location}} · {{session.goal_type}}</view>
     <view class="note" wx:if="{{session.notes}}">{{session.notes}}</view>
   </view>
@@ -8,9 +8,9 @@
   <empty-state wx:if="{{blocks.length === 0}}" title="暂无训练块" desc="这次训练还没有明细" />
   <view wx:for="{{blocks}}" wx:key="_id" class="card">
     <view class="block-title">{{item.title}}</view>
-    <view class="block-meta">{{item.type === 'superset' ? '超级组' : '普通组'}}</view>
+    <view class="block-meta">{{item.display_type}}</view>
     <view wx:for="{{item.sets}}" wx:for-item="set" wx:key="_id" class="set-row">
-      <view>{{set.exercise_name || set.exercise_id}}</view>
+      <view>{{set.exercise_name}}</view>
       <view class="muted">第 {{set.round_index}} 轮</view>
       <view class="set-value">{{set.weight_kg}}kg × {{set.reps}}</view>
     </view>

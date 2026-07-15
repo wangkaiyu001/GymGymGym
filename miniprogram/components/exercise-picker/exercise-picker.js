@@ -20,7 +20,11 @@ Component({
     noop() {},
     async load() {
       const items = await listExercises({ keyword: this.data.keyword });
-      this.setData({ items });
+      this.setData({ items: items.map((item) => Object.assign({}, item, {
+        display_name: item.name_zh || item.name,
+        display_body_part: item.body_part_zh || item.body_part,
+        display_equipment: item.equipment_zh || item.equipment,
+      })) });
     },
     onClose() {
       this.triggerEvent('close');

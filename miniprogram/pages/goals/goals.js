@@ -7,6 +7,15 @@ const LEVEL_OPTIONS = [
   { value: 'advanced', label: '进阶' },
 ];
 
+function mapSelectableOptions(options, selected) {
+  const selectedList = selected || [];
+  return options.map((label) => ({
+    label,
+    value: label,
+    selected: selectedList.indexOf(label) >= 0,
+  }));
+}
+
 function indexOfValue(options, value) {
   const index = options.findIndex((item) => item.value === value);
   return index >= 0 ? index : 0;
@@ -26,7 +35,7 @@ Page({
     levelLabels: LEVEL_OPTIONS.map((item) => item.label),
     goalLabels: GOAL_OPTIONS.map((item) => item.label),
     locationLabels: LOCATION_OPTIONS.map((item) => item.label),
-    equipmentOptions: EQUIPMENT_OPTIONS,
+    equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, []),
     levelIndex: 0,
     goalIndex: 0,
     locationIndex: 0,
@@ -46,6 +55,7 @@ Page({
         levelIndex: indexOfValue(LEVEL_OPTIONS, profile.training_level),
         goalIndex: indexOfValue(GOAL_OPTIONS, profile.default_goal),
         locationIndex: indexOfValue(LOCATION_OPTIONS, profile.default_location),
+        equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, profile.available_equipment_home),
       });
     } catch (error) {
       wx.showToast({ title: '读取用户失败', icon: 'none' });
@@ -76,7 +86,10 @@ Page({
     const value = event.currentTarget.dataset.value;
     const list = this.data.profile.available_equipment_home;
     const next = list.indexOf(value) >= 0 ? list.filter((item) => item !== value) : list.concat(value);
-    this.setData({ 'profile.available_equipment_home': next });
+    this.setData({
+      'profile.available_equipment_home': next,
+      equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, next),
+    });
   },
 
   async save() {
