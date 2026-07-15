@@ -1,0 +1,99 @@
+<view class="container">
+  <view class="hero card">
+    <view class="title">今日训练</view>
+    <view class="subtitle">快速记录普通组、超级组和当天训练场景</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">训练场景</view>
+    <view class="field">
+      <view class="label">训练标题</view>
+      <input class="input" value="{{form.title}}" data-key="title" bindinput="onFormInput" placeholder="例如 胸肩三头 / 腿部力量" />
+    </view>
+    <view class="field">
+      <view class="label">日期</view>
+      <input class="input" value="{{form.date}}" data-key="date" bindinput="onFormInput" placeholder="YYYY-MM-DD" />
+    </view>
+    <view class="field two-col">
+      <view>
+        <view class="label">场所</view>
+        <picker range="{{locationLabels}}" value="{{locationIndex}}" bindchange="onLocationChange">
+          <view class="picker-like">{{locationLabels[locationIndex]}}</view>
+        </picker>
+      </view>
+      <view>
+        <view class="label">目标</view>
+        <picker range="{{goalLabels}}" value="{{goalIndex}}" bindchange="onGoalChange">
+          <view class="picker-like">{{goalLabels[goalIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">今天想练什么</view>
+      <view class="chip-list">
+        <view wx:for="{{bodyPartOptions}}" wx:key="*this" class="chip {{form.focus_body_parts.indexOf(item) >= 0 ? 'active' : ''}}" data-value="{{item}}" bindtap="toggleBodyPart">{{item}}</view>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">场地里有什么器材</view>
+      <view class="chip-list">
+        <view wx:for="{{equipmentOptions}}" wx:key="*this" class="chip {{form.available_equipment.indexOf(item) >= 0 ? 'active' : ''}}" data-value="{{item}}" bindtap="toggleEquipment">{{item}}</view>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">备注</view>
+      <textarea class="textarea" value="{{form.note}}" data-key="note" bindinput="onFormInput" placeholder="今天状态、时间限制、突破/维稳想法" />
+    </view>
+    <button class="btn btn-primary" bindtap="ensureSession">{{sessionId ? '训练已开始' : '开始训练'}}</button>
+  </view>
+
+  <view class="card">
+    <view class="row between">
+      <view class="section-title">训练块</view>
+      <view class="mini-actions">
+        <button class="small-btn" data-type="single" bindtap="openPicker">普通组</button>
+        <button class="small-btn" data-type="superset" bindtap="openPicker">超级组</button>
+      </view>
+    </view>
+    <empty-state wx:if="{{blocks.length === 0}}" title="还没有训练块" desc="先添加普通组或超级组" />
+    <view wx:for="{{blocks}}" wx:key="local_id" class="block">
+      <view class="row between">
+        <view>
+          <view class="block-title">{{item.title}}</view>
+          <view class="block-meta">{{item.type === 'superset' ? '超级组' : '普通组'}} · {{item.exercises.length}} 个动作</view>
+        </view>
+        <button class="small-btn ghost" data-index="{{index}}" bindtap="addRound">加一轮</button>
+      </view>
+      <view wx:for="{{item.sets}}" wx:for-item="set" wx:key="local_id" class="set-line">
+        <view class="set-name">{{set.exercise_name}}</view>
+        <view class="set-inputs">
+          <input class="set-input" type="digit" value="{{set.weight_kg}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="weight_kg" bindinput="onSetInput" />
+          <text>kg</text>
+          <input class="set-input" type="number" value="{{set.reps}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="reps" bindinput="onSetInput" />
+          <text>次</text>
+          <input class="set-input small" type="digit" value="{{set.rpe}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="rpe" bindinput="onSetInput" />
+          <text>RPE</text>
+        </view>
+        <view class="row set-flags">
+          <view class="flag {{set.is_warmup ? 'active' : ''}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="is_warmup" bindtap="toggleSetFlag">热身</view>
+          <view class="flag {{set.is_failure ? 'active' : ''}}" data-block-index="{{index}}" data-set-index="{{set.set_index_local}}" data-key="is_failure" bindtap="toggleSetFlag">力竭</view>
+        </view>
+      </view>
+    </view>
+    <button wx:if="{{blocks.length > 0}}" class="btn btn-primary finish" bindtap="saveWorkout">保存并结束训练</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">最近训练</view>
+    <empty-state wx:if="{{recentSessions.length === 0}}" title="暂无历史" desc="完成一次训练后会显示" />
+    <view wx:for="{{recentSessions}}" wx:key="_id" class="session-row" data-id="{{item._id}}" bindtap="goSessionDetail">
+      <view>
+        <view class="session-title">{{item.title}}</view>
+        <view class="session-meta">{{item.date}} · {{item.location}} · {{item.goal_type}}</view>
+      </view>
+      <view class="arrow">›</view>
+    </view>
+  </view>
+
+  <exercise-picker visible="{{pickerVisible}}" bind:close="closePicker" bind:select="onExerciseSelected" />
+</view>

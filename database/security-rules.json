@@ -1,0 +1,30 @@
+{
+  "users": {
+    "read": "doc._id == auth.openid",
+    "write": "doc._id == auth.openid"
+  },
+  "exercises": {
+    "read": true,
+    "write": false
+  },
+  "workout_sessions": {
+    "read": "doc._openid == auth.openid || doc.user_openid == auth.openid",
+    "write": "doc._openid == auth.openid || doc.user_openid == auth.openid || !doc._openid"
+  },
+  "workout_blocks": {
+    "read": "doc._openid == auth.openid || doc.user_openid == auth.openid",
+    "write": "doc._openid == auth.openid || doc.user_openid == auth.openid || !doc._openid"
+  },
+  "workout_sets": {
+    "read": "doc._openid == auth.openid || doc.user_openid == auth.openid",
+    "write": "doc._openid == auth.openid || doc.user_openid == auth.openid || !doc._openid"
+  },
+  "exercise_stats": {
+    "read": "doc._openid == auth.openid || doc.user_openid == auth.openid",
+    "write": "doc._openid == auth.openid || doc.user_openid == auth.openid || !doc._openid"
+  },
+  "user_goals": {
+    "read": "doc._openid == auth.openid || doc.user_openid == auth.openid",
+    "write": "doc._openid == auth.openid || doc.user_openid == auth.openid || !doc._openid"
+  }
+}

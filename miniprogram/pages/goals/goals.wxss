@@ -1,0 +1,2 @@
+.hero { background: linear-gradient(135deg, #7c2d12, #f97316); color: #fff; }
+.hero .title, .hero .subtitle { color: #fff; }

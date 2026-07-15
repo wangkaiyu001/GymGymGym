@@ -1,0 +1,18 @@
+.hero { background: #101828; color: #fff; }
+.hero .title, .hero .subtitle { color: #fff; }
+.small-btn {
+  min-height: 58rpx;
+  line-height: 58rpx;
+  border-radius: 999rpx;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+  background: #e8f0ff;
+  color: #1d4ed8;
+  border: 0;
+}
+.stat-row { padding: 22rpx 0; border-top: 1rpx solid #eaecf0; }
+.stat-name { font-size: 30rpx; font-weight: 800; }
+.stat-meta { color: #667085; font-size: 24rpx; margin-top: 6rpx; }
+.stat-pr { font-size: 32rpx; font-weight: 800; color: #2563eb; }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12rpx; margin-top: 16rpx; color: #667085; font-size: 24rpx; }
+.stat-grid text { color: #101828; font-weight: 700; }

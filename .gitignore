@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+miniprogram_npm/
+.env
+.env.*
+!.env.example
+cloudbaserc.*.json
+!cloudbaserc.json
+miniprogram/data/exercises.full.json
+miniprogram/data/exercises.normalized.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

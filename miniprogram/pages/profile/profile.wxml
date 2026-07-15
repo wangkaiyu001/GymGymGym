@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="card hero">
+    <view class="title">个人档案</view>
+    <view class="subtitle">动作次数、最大重量和训练容量自动汇总</view>
+  </view>
+
+  <view class="card metric-grid">
+    <view class="metric">
+      <view class="metric-value">{{summary.totalSessions}}</view>
+      <view class="metric-label">训练次数</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{summary.totalSets}}</view>
+      <view class="metric-label">有效组数</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{summary.totalReps}}</view>
+      <view class="metric-label">总次数</view>
+    </view>
+    <view class="metric">
+      <view class="metric-value">{{summary.totalVolume}}</view>
+      <view class="metric-label">总容量 kg</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row between">
+      <view class="section-title">动作表现</view>
+      <button class="small-btn" bindtap="recalculate">重算</button>
+    </view>
+    <empty-state wx:if="{{stats.length === 0}}" title="暂无动作统计" desc="保存训练后点击重算或稍后回来查看" />
+    <view wx:for="{{stats}}" wx:key="_id" class="stat-row">
+      <view class="row between">
+        <view>
+          <view class="stat-name">{{item.exercise_name || item.exercise_id}}</view>
+          <view class="stat-meta">最近 {{item.last_performed_at_text || '-'}}</view>
+        </view>
+        <view class="stat-pr">{{item.max_weight_kg}} kg</view>
+      </view>
+      <view class="stat-grid">
+        <view>组数 <text>{{item.total_sets}}</text></view>
+        <view>次数 <text>{{item.total_reps}}</text></view>
+        <view>容量 <text>{{item.total_volume_kg}}</text></view>
+        <view>估算1RM <text>{{item.estimated_1rm_kg}}</text></view>
+      </view>
+    </view>
+  </view>
+</view>

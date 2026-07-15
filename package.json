@@ -1,0 +1,15 @@
+{
+  "name": "gymgymgym",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Private WeChat Mini Program for workout logging and personal strength profile.",
+  "scripts": {
+    "check": "node scripts/check-project.js",
+    "normalize:exercises": "node scripts/normalize-exercises.js",
+    "import:exercises": "node scripts/import-exercises.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {}
+}

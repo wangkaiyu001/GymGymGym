@@ -1,0 +1,42 @@
+<view class="container">
+  <view class="card hero">
+    <view class="title">目标设置</view>
+    <view class="subtitle">记录长期目标、默认场地和常用器材</view>
+  </view>
+
+  <view class="card">
+    <view class="field">
+      <view class="label">昵称</view>
+      <input class="input" value="{{profile.nickname}}" data-key="nickname" bindinput="onInput" placeholder="怎么称呼你" />
+    </view>
+    <view class="field">
+      <view class="label">训练水平</view>
+      <picker range="{{levelLabels}}" value="{{levelIndex}}" bindchange="onLevelChange">
+        <view class="picker-like">{{levelLabels[levelIndex]}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <view class="label">默认目标</view>
+      <picker range="{{goalLabels}}" value="{{goalIndex}}" bindchange="onGoalChange">
+        <view class="picker-like">{{goalLabels[goalIndex]}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <view class="label">默认场地</view>
+      <picker range="{{locationLabels}}" value="{{locationIndex}}" bindchange="onLocationChange">
+        <view class="picker-like">{{locationLabels[locationIndex]}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <view class="label">常用器材</view>
+      <view class="chip-list">
+        <view wx:for="{{equipmentOptions}}" wx:key="*this" class="chip {{profile.available_equipment_home.indexOf(item) >= 0 ? 'active' : ''}}" data-value="{{item}}" bindtap="toggleEquipment">{{item}}</view>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">长期目标描述</view>
+      <textarea class="textarea" value="{{profile.goal_note}}" data-key="goal_note" bindinput="onInput" placeholder="例如 卧推 100kg，深蹲稳定进步，每周训练3次" />
+    </view>
+    <button class="btn btn-primary" bindtap="save">保存设置</button>
+  </view>
+</view>

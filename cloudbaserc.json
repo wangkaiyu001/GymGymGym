@@ -1,0 +1,22 @@
+{
+  "envId": "code-realtime-d7gbuxrbze297e600",
+  "functionRoot": "cloudfunctions",
+  "functions": [
+    {
+      "name": "getUserContext",
+      "handler": "index.main",
+      "runtime": "Nodejs18.15",
+      "timeout": 10,
+      "memorySize": 256,
+      "installDependency": true
+    },
+    {
+      "name": "recalculateStats",
+      "handler": "index.main",
+      "runtime": "Nodejs18.15",
+      "timeout": 60,
+      "memorySize": 512,
+      "installDependency": true
+    }
+  ]
+}

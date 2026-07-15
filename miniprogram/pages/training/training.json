@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "今日训练",
+  "usingComponents": {
+    "exercise-picker": "/components/exercise-picker/exercise-picker",
+    "empty-state": "/components/empty-state/empty-state"
+  }
+}

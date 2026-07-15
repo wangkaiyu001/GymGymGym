@@ -1,0 +1,9 @@
+.search { margin-top: 24rpx; }
+.h-scroll { white-space: nowrap; margin-top: 18rpx; }
+.filter-row { display: flex; gap: 12rpx; }
+.exercise-card { margin-bottom: 18rpx; }
+.exercise-name { font-size: 32rpx; font-weight: 800; }
+.exercise-en { font-size: 24rpx; color: #667085; margin-top: 6rpx; }
+.tag { background: #ecfdf3; color: #027a48; border-radius: 999rpx; padding: 10rpx 16rpx; font-size: 22rpx; }
+.meta { margin-top: 18rpx; font-size: 24rpx; color: #475467; }
+.steps { margin-top: 14rpx; color: #667085; font-size: 24rpx; line-height: 1.6; }

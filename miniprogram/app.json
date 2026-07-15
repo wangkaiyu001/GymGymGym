@@ -1,0 +1,43 @@
+{
+  "pages": [
+    "pages/training/training",
+    "pages/exercises/exercises",
+    "pages/profile/profile",
+    "pages/goals/goals",
+    "pages/session-detail/session-detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "GymGymGym",
+    "navigationBarBackgroundColor": "#121826",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7fb",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#667085",
+    "selectedColor": "#3b82f6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/training/training",
+        "text": "训练"
+      },
+      {
+        "pagePath": "pages/exercises/exercises",
+        "text": "动作库"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "档案"
+      },
+      {
+        "pagePath": "pages/goals/goals",
+        "text": "目标"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
