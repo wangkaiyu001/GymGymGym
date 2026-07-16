@@ -1,10 +1,25 @@
-const { getSessionBundle, getExerciseById } = require('../../utils/db');
+const {
+  getSessionBundle,
+  getExerciseById,
+  updateSet,
+  deleteSet: removeWorkoutSet,
+  deleteBlock: removeWorkoutBlock,
+} = require('../../utils/db');
+const { toNumber } = require('../../utils/format');
+
+function findSet(blocks, blockIndex, setId) {
+  const block = blocks[blockIndex];
+  if (!block) return null;
+  return block.sets.find((item) => item._id === setId) || null;
+}
 
 Page({
   data: {
     id: '',
     session: {},
     blocks: [],
+    savingSetId: '',
+    deletingId: '',
   },
 
   onLoad(options) {
@@ -24,7 +39,8 @@ Page({
           names[exerciseId] = exercise ? (exercise.name_zh || exercise.name) : exerciseId;
         }
       }
-      const blocks = bundle.blocks.map((block) => Object.assign({}, block, {
+      const blocks = bundle.blocks.map((block, blockIndex) => Object.assign({}, block, {
+        block_index: blockIndex,
         display_type: block.type === 'superset' ? '超级组' : '普通组',
         sets: bundle.sets
           .filter((set) => set.block_id === block._id)
@@ -38,6 +54,123 @@ Page({
       console.error(error);
     } finally {
       wx.hideLoading();
+    }
+  },
+
+  onSetInput(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const setId = event.currentTarget.dataset.setId;
+    const key = event.currentTarget.dataset.key;
+    const blocks = this.data.blocks.slice();
+    const set = findSet(blocks, blockIndex, setId);
+    if (!set) return;
+    set[key] = event.detail.value;
+    this.setData({ blocks });
+  },
+
+  toggleSetFlag(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const setId = event.currentTarget.dataset.setId;
+    const key = event.currentTarget.dataset.key;
+    const blocks = this.data.blocks.slice();
+    const set = findSet(blocks, blockIndex, setId);
+    if (!set) return;
+    set[key] = !set[key];
+    this.setData({ blocks });
+  },
+
+  async saveSet(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const setId = event.currentTarget.dataset.setId;
+    const set = findSet(this.data.blocks, blockIndex, setId);
+    if (!set || this.data.savingSetId) return;
+    this.setData({ savingSetId: setId });
+    try {
+      await updateSet(setId, {
+        weight_kg: toNumber(set.weight_kg, 0),
+        reps: toNumber(set.reps, 0),
+        rpe: toNumber(set.rpe, 0),
+        is_warmup: Boolean(set.is_warmup),
+        is_failure: Boolean(set.is_failure),
+      });
+      await this.recalculateStats();
+      wx.showToast({ title: '已保存', icon: 'success' });
+      this.load(this.data.id);
+    } catch (error) {
+      wx.showToast({ title: '保存失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      this.setData({ savingSetId: '' });
+    }
+  },
+
+  async deleteSet(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const setId = event.currentTarget.dataset.setId;
+    const set = findSet(this.data.blocks, blockIndex, setId);
+    if (!set || this.data.deletingId) return;
+    const result = await new Promise((resolve) => {
+      wx.showModal({
+        title: '删除这一组？',
+        content: `${set.exercise_name || '动作'} ${set.weight_kg || 0}kg × ${set.reps || 0} 将从档案统计中移除。`,
+        confirmText: '删除',
+        confirmColor: '#d92d20',
+        success: resolve,
+        fail: () => resolve({ confirm: false }),
+      });
+    });
+    if (!result.confirm) return;
+    this.setData({ deletingId: setId });
+    try {
+      await removeWorkoutSet(setId);
+      await this.recalculateStats();
+      wx.showToast({ title: '已删除', icon: 'success' });
+      this.load(this.data.id);
+    } catch (error) {
+      wx.showToast({ title: '删除失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      this.setData({ deletingId: '' });
+    }
+  },
+
+  async deleteBlock(event) {
+    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
+    const block = this.data.blocks[blockIndex];
+    if (!block || this.data.deletingId) return;
+    const result = await new Promise((resolve) => {
+      wx.showModal({
+        title: '删除训练块？',
+        content: `${block.title || '该训练块'} 下的 ${block.sets.length} 组都会被删除。`,
+        confirmText: '删除',
+        confirmColor: '#d92d20',
+        success: resolve,
+        fail: () => resolve({ confirm: false }),
+      });
+    });
+    if (!result.confirm) return;
+    this.setData({ deletingId: block._id });
+    try {
+      for (let i = 0; i < block.sets.length; i += 1) {
+        await removeWorkoutSet(block.sets[i]._id);
+      }
+      await removeWorkoutBlock(block._id);
+      await this.recalculateStats();
+      wx.showToast({ title: '已删除', icon: 'success' });
+      this.load(this.data.id);
+    } catch (error) {
+      wx.showToast({ title: '删除失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      this.setData({ deletingId: '' });
+    }
+  },
+
+  async recalculateStats() {
+    try {
+      await wx.cloud.callFunction({ name: 'recalculateStats', data: {} });
+    } catch (error) {
+      console.warn('统计重算失败，可稍后在档案页手动重试', error);
     }
   },
 });

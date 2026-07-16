@@ -208,6 +208,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - 过滤热身组。
 - 按动作聚合统计。
 - 写入 `exercise_stats`。
+- 删除已经没有有效训练组支撑的旧 `exercise_stats`，避免删除训练后档案残留旧动作。
 
 ## 6. 前端数据访问策略
 
@@ -218,9 +219,16 @@ CloudBase 安全规则见 `database/security-rules.json`。
 
 写入约定：
 
-- 小程序端直接新增训练数据时，CloudBase 会自动写入 `_openid`，安全规则主要依赖 `_openid == auth.openid`。
+- 小程序端直接新增训练数据时，CloudBase 会自动写入 `_openid`，同时在已获取用户上下文后显式写入 `user_openid`，安全规则兼容 `_openid == auth.openid` 与 `user_openid == auth.openid`。
 - 云函数重算统计时补充 `user_openid`，便于后续跨端或管理端迁移。
 - `users` 文档 ID 使用 OpenID；保存用户资料时需要保留已有 `created_at`、`role` 等字段。
+
+训练记录 V0.2 行为：
+
+- “训练”页最近训练支持复制，复制的是训练块结构和每组上次填写值；保存时会创建新的 session/block/set，不会修改旧训练。
+- “训练详情”页支持编辑已保存 set 的重量、次数、RPE、热身/力竭。
+- “训练详情”页支持删除单个 set 或整个 block；删除 block 时先删除其下所有 set，再删除 block。
+- 编辑或删除后调用 `recalculateStats`，保证个人档案跟随训练明细变化。
 
 ## 7. 数据导入策略
 

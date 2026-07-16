@@ -7,12 +7,36 @@
 
   <empty-state wx:if="{{blocks.length === 0}}" title="暂无训练块" desc="这次训练还没有明细" />
   <view wx:for="{{blocks}}" wx:key="_id" class="card">
-    <view class="block-title">{{item.title}}</view>
-    <view class="block-meta">{{item.display_type}}</view>
+    <view class="row between block-head">
+      <view>
+        <view class="block-title">{{item.title}}</view>
+        <view class="block-meta">{{item.display_type}} · {{item.sets.length}} 组</view>
+      </view>
+      <button class="small-btn danger" data-block-index="{{item.block_index}}" loading="{{deletingId === item._id}}" disabled="{{!!deletingId}}" bindtap="deleteBlock">删除块</button>
+    </view>
     <view wx:for="{{item.sets}}" wx:for-item="set" wx:key="_id" class="set-row">
-      <view>{{set.exercise_name}}</view>
-      <view class="muted">第 {{set.round_index}} 轮</view>
-      <view class="set-value">{{set.weight_kg}}kg × {{set.reps}}</view>
+      <view class="set-top">
+        <view>
+          <view class="set-name">{{set.exercise_name}}</view>
+          <view class="muted">第 {{set.round_index}} 轮</view>
+        </view>
+        <view class="set-actions">
+          <button class="small-btn ghost" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" loading="{{savingSetId === set._id}}" disabled="{{!!savingSetId || !!deletingId}}" bindtap="saveSet">保存</button>
+          <button class="small-btn danger" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" loading="{{deletingId === set._id}}" disabled="{{!!savingSetId || !!deletingId}}" bindtap="deleteSet">删除</button>
+        </view>
+      </view>
+      <view class="set-inputs">
+        <input class="set-input" type="digit" value="{{set.weight_kg}}" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" data-key="weight_kg" bindinput="onSetInput" />
+        <text>kg</text>
+        <input class="set-input" type="number" value="{{set.reps}}" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" data-key="reps" bindinput="onSetInput" />
+        <text>次</text>
+        <input class="set-input small" type="digit" value="{{set.rpe}}" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" data-key="rpe" bindinput="onSetInput" />
+        <text>RPE</text>
+      </view>
+      <view class="flag-row">
+        <view class="flag {{set.is_warmup ? 'active' : ''}}" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" data-key="is_warmup" bindtap="toggleSetFlag">热身</view>
+        <view class="flag {{set.is_failure ? 'active' : ''}}" data-block-index="{{item.block_index}}" data-set-id="{{set._id}}" data-key="is_failure" bindtap="toggleSetFlag">力竭</view>
+      </view>
     </view>
   </view>
 </view>

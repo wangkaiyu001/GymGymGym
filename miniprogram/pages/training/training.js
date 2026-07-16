@@ -14,6 +14,8 @@ const {
   addBlock,
   addSet,
   listRecentSessions,
+  getSessionBundle,
+  getExerciseById,
 } = require('../../utils/db');
 
 function indexOfValue(options, value) {
@@ -62,6 +64,27 @@ function makeSet(exercise, roundIndex, exerciseOrder, localIndex) {
     rpe: '',
     is_warmup: false,
     is_failure: false,
+  };
+}
+
+async function getExerciseName(exerciseId) {
+  const exercise = await getExerciseById(exerciseId);
+  return exercise ? (exercise.name_zh || exercise.name || exerciseId) : exerciseId;
+}
+
+function makeCopiedSet(set, exerciseName, localIndex) {
+  return {
+    local_id: `copy-${set._id || set.exercise_id}-${Date.now()}-${localIndex}`,
+    set_index_local: localIndex,
+    exercise_id: set.exercise_id,
+    exercise_name: exerciseName,
+    round_index: set.round_index || 1,
+    exercise_order_in_block: set.exercise_order_in_block || 1,
+    weight_kg: String(set.weight_kg || ''),
+    reps: String(set.reps || ''),
+    rpe: set.rpe ? String(set.rpe) : '',
+    is_warmup: Boolean(set.is_warmup),
+    is_failure: Boolean(set.is_failure),
   };
 }
 
@@ -433,5 +456,65 @@ Page({
   goSessionDetail(event) {
     const id = event.currentTarget.dataset.id;
     wx.navigateTo({ url: `/pages/session-detail/session-detail?id=${id}` });
+  },
+
+  async copyRecentSession(event) {
+    const id = event.currentTarget.dataset.id;
+    if (!id) return;
+    if (this.data.sessionId || this.data.blocks.length > 0) {
+      const result = await new Promise((resolve) => {
+        wx.showModal({
+          title: '复制上次训练？',
+          content: '当前未保存的训练块会被替换，请确认已经不需要它们。',
+          confirmText: '替换',
+          success: resolve,
+          fail: () => resolve({ confirm: false }),
+        });
+      });
+      if (!result.confirm) return;
+    }
+
+    wx.showLoading({ title: '复制中' });
+    try {
+      const bundle = await getSessionBundle(id);
+      const nameMap = {};
+      for (let i = 0; i < bundle.sets.length; i += 1) {
+        const exerciseId = bundle.sets[i].exercise_id;
+        if (!nameMap[exerciseId]) nameMap[exerciseId] = await getExerciseName(exerciseId);
+      }
+      const blocks = bundle.blocks.map((block, blockIndex) => {
+        const sets = bundle.sets
+          .filter((set) => set.block_id === block._id)
+          .map((set, setIndex) => makeCopiedSet(set, nameMap[set.exercise_id] || set.exercise_id, setIndex));
+        const exerciseIds = block.exercise_ids || Array.from(new Set(sets.map((set) => set.exercise_id)));
+        return {
+          local_id: `copy-block-${block._id}-${Date.now()}-${blockIndex}`,
+          order: blockIndex + 1,
+          block_index: blockIndex,
+          type: block.type || 'single',
+          title: block.title || exerciseIds.map((exerciseId) => nameMap[exerciseId] || exerciseId).join(' + '),
+          exercises: exerciseIds.map((exerciseId) => ({
+            _id: exerciseId,
+            name: nameMap[exerciseId] || exerciseId,
+            name_zh: nameMap[exerciseId] || exerciseId,
+          })),
+          sets,
+        };
+      });
+      const sourceTitle = bundle.session && bundle.session.title ? bundle.session.title : '上次训练';
+      this.setData({
+        sessionId: '',
+        startDisabled: false,
+        blocks: mapBlocksForView(blocks),
+        'form.title': `${sourceTitle}（复制）`,
+        'form.date': formatDate(),
+      });
+      wx.showToast({ title: '已复制', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: '复制失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      wx.hideLoading();
+    }
   },
 });

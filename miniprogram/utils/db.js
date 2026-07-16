@@ -9,6 +9,23 @@ function now() {
   return new Date();
 }
 
+function currentOpenid() {
+  try {
+    const app = getApp();
+    return app && app.globalData && app.globalData.userContext
+      ? app.globalData.userContext.openid || ''
+      : '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function withOwnership(data) {
+  const openid = currentOpenid();
+  if (!openid || data.user_openid) return data;
+  return Object.assign({}, data, { user_openid: openid });
+}
+
 async function callFunction(name, data) {
   const result = await wx.cloud.callFunction({ name, data: data || {} });
   return result.result;
@@ -73,12 +90,12 @@ async function getExerciseById(id) {
 
 async function createSession(payload) {
   const time = now();
-  const data = Object.assign({}, payload, {
+  const data = withOwnership(Object.assign({}, payload, {
     status: 'draft',
     started_at: time,
     created_at: time,
     updated_at: time,
-  });
+  }));
   const result = await database().collection('workout_sessions').add({ data });
   return result._id;
 }
@@ -92,18 +109,41 @@ async function updateSession(sessionId, patch) {
 async function addBlock(payload) {
   const time = now();
   const result = await database().collection('workout_blocks').add({
-    data: Object.assign({}, payload, { created_at: time, updated_at: time }),
+    data: withOwnership(Object.assign({}, payload, { created_at: time, updated_at: time })),
   });
   return result._id;
+}
+
+async function updateBlock(blockId, patch) {
+  return database().collection('workout_blocks').doc(blockId).update({
+    data: Object.assign({}, patch, { updated_at: now() }),
+  });
+}
+
+async function deleteBlock(blockId) {
+  return database().collection('workout_blocks').doc(blockId).remove();
 }
 
 async function addSet(payload) {
   const time = now();
   const metrics = calcSetMetrics(payload.weight_kg, payload.reps);
   const result = await database().collection('workout_sets').add({
-    data: Object.assign({}, payload, metrics, { created_at: time, updated_at: time }),
+    data: withOwnership(Object.assign({}, payload, metrics, { created_at: time, updated_at: time })),
   });
   return result._id;
+}
+
+async function updateSet(setId, patch) {
+  const metrics = Object.prototype.hasOwnProperty.call(patch, 'weight_kg') || Object.prototype.hasOwnProperty.call(patch, 'reps')
+    ? calcSetMetrics(patch.weight_kg, patch.reps)
+    : {};
+  return database().collection('workout_sets').doc(setId).update({
+    data: Object.assign({}, patch, metrics, { updated_at: now() }),
+  });
+}
+
+async function deleteSet(setId) {
+  return database().collection('workout_sets').doc(setId).remove();
 }
 
 async function getSessionBundle(sessionId) {
@@ -182,7 +222,11 @@ module.exports = {
   createSession,
   updateSession,
   addBlock,
+  updateBlock,
+  deleteBlock,
   addSet,
+  updateSet,
+  deleteSet,
   getSessionBundle,
   listRecentSessions,
   listExerciseStats,

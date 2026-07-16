@@ -102,6 +102,17 @@ exports.main = async () => {
     });
   });
 
+  const currentStatIds = stats.reduce((acc, item) => {
+    acc[item._id] = true;
+    return acc;
+  }, {});
+  const oldStats = await getAll('exercise_stats', { user_openid: OPENID });
+  for (let i = 0; i < oldStats.length; i += 1) {
+    if (!currentStatIds[oldStats[i]._id]) {
+      await db.collection('exercise_stats').doc(oldStats[i]._id).remove();
+    }
+  }
+
   for (let i = 0; i < stats.length; i += 1) {
     await db.collection('exercise_stats').doc(stats[i]._id).set({ data: stats[i] });
   }
