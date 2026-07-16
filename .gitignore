@@ -11,3 +11,5 @@ miniprogram/data/exercises.normalized.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+external/
+dist/

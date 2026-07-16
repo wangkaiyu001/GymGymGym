@@ -10,4 +10,4 @@ MVP 需要以下 CloudBase 文档数据库集合：
 - `exercise_stats`：按动作聚合的个人档案统计。
 - `user_goals`：后续扩展的多个目标记录。
 
-> 注意：云函数和小程序写入不会自动创建所有集合。首次使用前建议在 CloudBase 控制台或 CLI 中创建这些集合，并按 `database/security-rules.json` 配置权限。
+> 注意：云函数和小程序写入不会自动创建所有集合。首次使用前建议在 CloudBase 控制台创建，或运行 `npm run setup:db -- --apply` 通过系统 marker 文档懒创建这些集合，并按 `database/security-rules.json` 配置权限。

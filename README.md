@@ -22,7 +22,6 @@
    - 搜索动作
    - 按部位、器械筛选
    - 查看动作说明
-   - 查看动作说明
 3. 个人档案
    - 汇总训练次数、总组数、总次数、总容量
    - 按动作展示最大重量、估算 1RM、最近训练
@@ -45,7 +44,8 @@
 │   └── recalculateStats/        # 重新计算个人动作统计
 ├── scripts/                     # 数据准备脚本
 │   ├── normalize-exercises.js
-│   └── import-exercises.js
+│   ├── import-exercises.js
+│   └── setup-cloudbase-db.js
 ├── database/                    # 数据库规则与集合说明
 ├── docs/                        # 需求、设计、开发与部署文档
 ├── cloudbaserc.json             # CloudBase CLI 配置
@@ -71,14 +71,29 @@ tcb fn deploy getUserContext
 tcb fn deploy recalculateStats
 ```
 
-6. 导入动作库数据：
+6. 初始化数据库集合（默认 dry-run，不会写入线上）：
 
 ```bash
-node scripts/normalize-exercises.js /path/to/exercises.json dist/exercises.normalized.json
-node scripts/import-exercises.js dist/exercises.normalized.json
+npm run setup:db -- --dry-run
+npm run setup:db -- --apply
 ```
 
-如果暂时不导入完整动作库，小程序会使用内置的小样本动作数据用于开发验证。
+7. 导入动作库数据（默认 dry-run，不会写入线上）：
+
+```bash
+git clone https://github.com/hasaneyldrm/exercises-dataset external/exercises-dataset
+npm run normalize:exercises
+npm run import:exercises -- --dry-run
+npm run import:exercises -- --apply
+```
+
+如需先验证云端写入，可小批量导入：
+
+```bash
+npm run import:exercises -- --apply --limit 5
+```
+
+如果暂时不导入完整动作库，小程序会使用内置的小样本动作数据用于开发验证。`external/` 和 `dist/` 已加入 `.gitignore`，不会提交 294M 的上游仓库和生成数据。
 
 ## 本地校验
 

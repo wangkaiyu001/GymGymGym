@@ -6,7 +6,8 @@
   "scripts": {
     "check": "node scripts/check-project.js",
     "normalize:exercises": "node scripts/normalize-exercises.js",
-    "import:exercises": "node scripts/import-exercises.js"
+    "import:exercises": "node scripts/import-exercises.js",
+    "setup:db": "node scripts/setup-cloudbase-db.js"
   },
   "engines": {
     "node": ">=20"
