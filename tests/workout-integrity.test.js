@@ -18,6 +18,7 @@ assert.equal(profileSource.includes('listAllSessions(1000)'), true, 'Backup must
 assert.equal(trainingSource.includes('discardWorkout()'), true, 'User must be able to delete a cloud draft');
 assert.equal(trainingSource.includes('restoreLatestDraft()'), true, 'Latest cloud draft must be restorable');
 assert.equal(trainingSource.includes('remote_id: set._id'), true, 'Restored sets must retain remote ids to avoid duplicates');
+assert.equal(trainingSource.includes('await updateSet(set.remote_id, setPayload)'), true, 'Edited restored sets must update their remote documents');
 assert.equal(dbSource.includes("deleteOwnedDocument('workout_sessions'"), true, 'Session deletion must enforce ownership');
 assert.equal(dbSource.includes("where: { status: 'draft' }"), true, 'Draft lookup must explicitly filter status');
 assert.equal(detailSource.includes("status: 'draft', ended_at: null"), true, 'Deleting the final block must remove the session from completed history');

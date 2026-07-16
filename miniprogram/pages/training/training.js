@@ -16,6 +16,7 @@ const {
   addBlock,
   updateBlock,
   addSet,
+  updateSet,
   listRecentSessions,
   getLatestDraftSession,
   getSessionBundle,
@@ -621,8 +622,7 @@ Page({
         }
         for (let j = 0; j < block.sets.length; j += 1) {
           const set = block.sets[j];
-          if (set.remote_id) continue;
-          const setId = await addSet({
+          const setPayload = {
             session_id: sessionId,
             block_id: blockId,
             exercise_id: set.exercise_id,
@@ -637,7 +637,12 @@ Page({
             is_failure: set.is_failure,
             rest_seconds_after: null,
             notes: '',
-          });
+          };
+          if (set.remote_id) {
+            await updateSet(set.remote_id, setPayload);
+            continue;
+          }
+          const setId = await addSet(setPayload);
           set.remote_id = setId;
           block.sets[j] = set;
           blocks[i] = block;
