@@ -1,10 +1,11 @@
 <view class="container">
   <view class="card hero">
-    <view class="title">目标设置</view>
-    <view class="subtitle">记录长期目标、默认场地和常用器材</view>
+    <view class="title">目标与设置</view>
+    <view class="subtitle">保存默认训练偏好，也把具体目标拆成可追踪的里程碑</view>
   </view>
 
   <view class="card">
+    <view class="section-title">默认训练偏好</view>
     <view class="field">
       <view class="label">昵称</view>
       <input class="input" value="{{profile.nickname}}" data-key="nickname" bindinput="onInput" placeholder="怎么称呼你" />
@@ -37,6 +38,102 @@
       <view class="label">长期目标描述</view>
       <textarea class="textarea" value="{{profile.goal_note}}" data-key="goal_note" bindinput="onInput" placeholder="例如 卧推 100kg，深蹲稳定进步，每周训练3次" />
     </view>
-    <button class="btn btn-primary" bindtap="save">保存设置</button>
+    <button class="btn btn-secondary" bindtap="save">保存默认设置</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">创建具体目标</view>
+    <view class="subtitle goal-hint">例如“卧推 100kg”“每周训练 3 次”或“体重降到 65kg”。</view>
+    <view class="field">
+      <view class="label">目标名称 *</view>
+      <input class="input" value="{{goalForm.title}}" data-key="title" bindinput="onGoalFormInput" placeholder="卧推达到 100kg" />
+    </view>
+    <view class="form-grid">
+      <view class="field">
+        <view class="label">目标类型</view>
+        <picker range="{{goalLabels}}" value="{{newGoalTypeIndex}}" bindchange="onNewGoalTypeChange">
+          <view class="picker-like">{{goalLabels[newGoalTypeIndex]}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="label">指标类型</view>
+        <picker range="{{metricLabels}}" value="{{metricIndex}}" bindchange="onMetricChange">
+          <view class="picker-like">{{metricLabels[metricIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="form-grid">
+      <view class="field">
+        <view class="label">目标数值</view>
+        <input class="input" value="{{goalForm.target_value}}" data-key="target_value" bindinput="onGoalFormInput" placeholder="100" />
+      </view>
+      <view class="field">
+        <view class="label">截止日期</view>
+        <picker mode="date" value="{{goalForm.target_date}}" bindchange="onGoalDateChange">
+          <view class="picker-like">{{goalForm.target_date || '选择日期'}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">关联动作（可选）</view>
+      <input class="input" value="{{goalForm.exercise_name}}" data-key="exercise_name" bindinput="onGoalFormInput" placeholder="例如 杠铃卧推" />
+    </view>
+    <view class="field">
+      <view class="label">重点部位</view>
+      <view class="chip-list">
+        <view wx:for="{{bodyPartOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="toggleGoalBodyPart">{{item.label}}</view>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">说明（可选）</view>
+      <textarea class="textarea" value="{{goalForm.description}}" data-key="description" bindinput="onGoalFormInput" placeholder="为什么设定这个目标、计划如何完成" />
+    </view>
+    <button class="btn btn-primary" loading="{{isSavingGoal}}" disabled="{{isSavingGoal}}" bindtap="addGoal">创建目标</button>
+  </view>
+
+  <view class="card">
+    <view class="row between">
+      <view class="section-title">进行中的目标</view>
+      <view class="count-pill">{{activeGoals.length}}</view>
+    </view>
+    <empty-state wx:if="{{activeGoals.length === 0}}" title="还没有具体目标" desc="创建一个明确的重量、频率或体重目标" />
+    <view wx:for="{{activeGoals}}" wx:key="_id" class="goal-card">
+      <view class="row between goal-heading">
+        <view>
+          <view class="goal-title">{{item.title}}</view>
+          <view class="goal-type">{{item.goal_type_label}} · {{item.target_date_text}}</view>
+        </view>
+        <view class="status active">{{item.status_label}}</view>
+      </view>
+      <view wx:if="{{item.metric_text}}" class="goal-metric">{{item.metric_label}} <text>{{item.metric_text}}</text></view>
+      <view wx:if="{{item.exercise_name}}" class="goal-meta">关联动作：{{item.exercise_name}}</view>
+      <view wx:if="{{item.focus_text}}" class="goal-meta">重点部位：{{item.focus_text}}</view>
+      <view wx:if="{{item.description}}" class="goal-desc">{{item.description}}</view>
+      <view class="goal-actions">
+        <button class="goal-action done" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleGoalStatus">标记完成</button>
+        <button class="goal-action delete" data-id="{{item._id}}" bindtap="deleteGoal">删除</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{doneGoals.length > 0}}">
+    <view class="row between">
+      <view class="section-title">已完成</view>
+      <view class="count-pill done-count">{{doneGoals.length}}</view>
+    </view>
+    <view wx:for="{{doneGoals}}" wx:key="_id" class="goal-card goal-card-done">
+      <view class="row between goal-heading">
+        <view>
+          <view class="goal-title">{{item.title}}</view>
+          <view class="goal-type">{{item.goal_type_label}} · {{item.target_date_text}}</view>
+        </view>
+        <view class="status done">{{item.status_label}}</view>
+      </view>
+      <view wx:if="{{item.metric_text}}" class="goal-metric">{{item.metric_label}} <text>{{item.metric_text}}</text></view>
+      <view class="goal-actions">
+        <button class="goal-action restore" data-id="{{item._id}}" data-status="{{item.status}}" bindtap="toggleGoalStatus">恢复进行中</button>
+        <button class="goal-action delete" data-id="{{item._id}}" bindtap="deleteGoal">删除</button>
+      </view>
+    </view>
   </view>
 </view>

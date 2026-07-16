@@ -173,9 +173,15 @@ Region: ap-shanghai
   goal_type,
   title,
   description,
+  exercise_name,
   focus_body_parts,
-  target_metrics,
+  target_metrics: {
+    metric_type: "weight_kg" | "estimated_1rm_kg" | "weekly_sessions" | "body_weight_kg" | "free_text",
+    target_value
+  },
+  target_date,
   status: "active" | "paused" | "done",
+  completed_at,
   created_at,
   updated_at
 }
@@ -239,6 +245,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - “训练详情”页支持编辑已保存 set 的重量、次数、RPE、热身/力竭。
 - “训练详情”页支持删除单个 set 或整个 block；删除 block 时先删除其下所有 set，再删除 block。
 - 编辑或删除后调用 `recalculateStats`，保证个人档案跟随训练明细变化。
+- “目标”页使用 `user_goals` 保存多个结构化目标，支持创建、完成、恢复和删除；目标列表显式按当前 OpenID 查询。
 
 ## 7. 数据导入策略
 

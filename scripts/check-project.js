@@ -68,6 +68,7 @@ assertRegisteredComponent('miniprogram/pages/training/training.json', 'empty-sta
 assertRegisteredComponent('miniprogram/pages/training/training.json', 'exercise-picker', '/components/exercise-picker/exercise-picker');
 assertRegisteredComponent('miniprogram/pages/exercises/exercises.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/pages/profile/profile.json', 'empty-state', '/components/empty-state/empty-state');
+assertRegisteredComponent('miniprogram/pages/goals/goals.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/pages/session-detail/session-detail.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/components/exercise-picker/exercise-picker.json', 'empty-state', '/components/empty-state/empty-state');
 

@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "目标设置"
+  "navigationBarTitleText": "目标与设置",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }

@@ -311,6 +311,38 @@ async function listWorkoutSets(limit) {
   }
 }
 
+async function listUserGoals(limit) {
+  const db = database();
+  const result = await db.collection('user_goals')
+    .where(ownedWhere(db))
+    .orderBy('created_at', 'desc')
+    .limit(limit || 20)
+    .get();
+  return result.data || [];
+}
+
+async function addUserGoal(payload) {
+  const time = now();
+  const result = await database().collection('user_goals').add({
+    data: withOwnership(Object.assign({}, payload, {
+      status: payload.status || 'active',
+      created_at: time,
+      updated_at: time,
+    })),
+  });
+  return result._id;
+}
+
+async function updateUserGoal(goalId, patch) {
+  return database().collection('user_goals').doc(goalId).update({
+    data: Object.assign({}, patch, { updated_at: now() }),
+  });
+}
+
+async function deleteUserGoal(goalId) {
+  return database().collection('user_goals').doc(goalId).remove();
+}
+
 async function saveUserProfile(openid, data) {
   const time = now();
   let existing = {};
@@ -351,5 +383,9 @@ module.exports = {
   listRecentSessions,
   listExerciseStats,
   listWorkoutSets,
+  listUserGoals,
+  addUserGoal,
+  updateUserGoal,
+  deleteUserGoal,
   saveUserProfile,
 };
