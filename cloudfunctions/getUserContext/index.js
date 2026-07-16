@@ -28,6 +28,7 @@ exports.main = async () => {
       default_goal: 'hypertrophy',
       default_location: 'gym',
       available_equipment_home: [],
+      favorite_exercise_ids: [],
       created_at: now,
       updated_at: now,
     };

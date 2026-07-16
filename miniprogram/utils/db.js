@@ -78,6 +78,40 @@ async function listExercises(filters) {
   });
 }
 
+async function listExercisesByIds(ids) {
+  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)));
+  if (uniqueIds.length === 0) return [];
+  try {
+    const db = database();
+    const _ = db.command;
+    const result = await db.collection('exercises')
+      .where({ _id: _.in(uniqueIds.slice(0, 50)) })
+      .limit(50)
+      .get();
+    if (result.data && result.data.length > 0) return result.data;
+  } catch (error) {
+    console.warn('读取收藏动作失败，使用内置动作兜底', error);
+  }
+  return seedExercises.filter((item) => uniqueIds.indexOf(item._id) >= 0 || uniqueIds.indexOf(item.source_id) >= 0);
+}
+
+async function getFavoriteExerciseIds(openid) {
+  if (!openid) return [];
+  try {
+    const result = await database().collection('users').doc(openid).get();
+    const user = result.data || {};
+    return Array.isArray(user.favorite_exercise_ids) ? user.favorite_exercise_ids : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function saveFavoriteExerciseIds(openid, ids) {
+  if (!openid) throw new Error('Missing openid');
+  const uniqueIds = Array.from(new Set((ids || []).filter(Boolean)));
+  return saveUserProfile(openid, { favorite_exercise_ids: uniqueIds });
+}
+
 async function getExerciseById(id) {
   const fromSeed = seedExercises.find((item) => item._id === id || item.source_id === id);
   try {
@@ -218,6 +252,9 @@ module.exports = {
   database,
   getUserContext,
   listExercises,
+  listExercisesByIds,
+  getFavoriteExerciseIds,
+  saveFavoriteExerciseIds,
   getExerciseById,
   createSession,
   updateSession,

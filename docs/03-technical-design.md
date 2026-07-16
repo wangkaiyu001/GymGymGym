@@ -33,6 +33,7 @@ Region: ap-shanghai
   default_goal: "hypertrophy" | "strength" | "fat_loss" | "maintenance" | "recovery",
   default_location: "home" | "gym" | "hotel" | "outdoor",
   available_equipment_home: string[],
+  favorite_exercise_ids: string[],
   created_at,
   updated_at
 }
@@ -216,6 +217,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - 用户身份通过 `getUserContext` 获取。
 - 个人档案优先读 `exercise_stats`，为空时小程序端基于最近 `workout_sets` 做轻量实时聚合，避免云函数未部署时完全无数据。
 - 完整动作库未导入时使用 `miniprogram/data/seed-exercises.js`。
+- 常用/收藏动作保存在 `users.favorite_exercise_ids`，动作库页负责增删收藏，训练动作选择器读取后展示“常用收藏”区并将收藏动作置顶。
 
 写入约定：
 
@@ -224,6 +226,9 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - `users` 文档 ID 使用 OpenID；保存用户资料时需要保留已有 `created_at`、`role` 等字段。
 
 训练记录 V0.2 行为：
+
+- “动作库”页支持收藏/取消收藏动作，收藏列表写入用户文档，不额外增加集合复杂度。
+- “训练”页动作选择器会读取收藏动作，在无搜索词时显示常用收藏区，搜索结果中收藏动作置顶。
 
 - “训练”页最近训练支持复制，复制的是训练块结构和每组上次填写值；保存时会创建新的 session/block/set，不会修改旧训练。
 - “训练详情”页支持编辑已保存训练的标题、日期、场所、目标和备注。

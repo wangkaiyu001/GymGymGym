@@ -6,11 +6,29 @@
     </view>
     <input class="search" placeholder="搜索动作/肌群" value="{{keyword}}" bindinput="onKeywordInput" confirm-type="search" />
     <scroll-view class="list" scroll-y="true">
+      <view wx:if="{{!keyword && favoriteItems.length > 0}}" class="group-title">常用收藏</view>
+      <block wx:if="{{!keyword}}">
+        <view wx:for="{{favoriteItems}}" wx:key="_id" class="item favorite" data-id="{{item._id}}" bindtap="onSelect">
+          <view class="row between">
+            <view>
+              <view class="item-name">{{item.display_name}}</view>
+              <view class="item-meta">{{item.display_body_part}} · {{item.display_equipment}}</view>
+            </view>
+            <view class="favorite-mark">常用</view>
+          </view>
+        </view>
+      </block>
+      <view wx:if="{{!keyword && favoriteItems.length > 0}}" class="group-title all-title">全部动作</view>
       <view wx:for="{{items}}" wx:key="_id" class="item" data-id="{{item._id}}" bindtap="onSelect">
-        <view class="item-name">{{item.display_name}}</view>
-        <view class="item-meta">{{item.display_body_part}} · {{item.display_equipment}}</view>
+        <view class="row between">
+          <view>
+            <view class="item-name">{{item.display_name}}</view>
+            <view class="item-meta">{{item.display_body_part}} · {{item.display_equipment}}</view>
+          </view>
+          <view wx:if="{{item.is_favorite}}" class="favorite-mark">常用</view>
+        </view>
       </view>
-      <empty-state wx:if="{{items.length === 0}}" title="没找到动作" desc="换个关键词试试" />
+      <empty-state wx:if="{{!hasVisibleItems}}" title="没找到动作" desc="换个关键词试试" />
     </scroll-view>
   </view>
 </view>

@@ -2,7 +2,7 @@
 
 MVP 需要以下 CloudBase 文档数据库集合：
 
-- `users`：用户资料，文档 ID 使用 OpenID。
+- `users`：用户资料，文档 ID 使用 OpenID；同时保存默认训练偏好和 `favorite_exercise_ids` 常用/收藏动作。
 - `exercises`：动作库，初期可使用小程序内置 seed，后续导入完整开源数据。
 - `workout_sessions`：一次训练的主记录。
 - `workout_blocks`：训练块，用于表达普通组、超级组、循环组。

@@ -1,8 +1,12 @@
 <view class="container">
   <view class="card">
     <view class="title">动作库</view>
-    <view class="subtitle">内置常用动作，可后续导入 exercises-dataset 完整库</view>
+    <view class="subtitle">完整动作库已导入云端；收藏常用动作后，训练选择时会优先显示</view>
     <input class="input search" value="{{keyword}}" bindinput="onKeywordInput" placeholder="搜索动作、中文名、目标肌群" />
+    <view class="quick-row">
+      <view class="chip {{showFavoritesOnly ? 'active' : ''}}" bindtap="toggleFavoritesOnly">{{showFavoritesOnly ? '只看收藏' : '收藏优先'}}</view>
+      <view class="favorite-count">已收藏 {{favoriteExerciseIds.length}} 个动作</view>
+    </view>
     <scroll-view scroll-x="true" class="h-scroll">
       <view class="filter-row">
         <view class="chip {{!bodyPart ? 'active' : ''}}" data-value="" bindtap="selectBodyPart">全部部位</view>
@@ -24,7 +28,10 @@
         <view class="exercise-name">{{item.display_name}}</view>
         <view class="exercise-en">{{item.name}}</view>
       </view>
-      <view class="tag">{{item.display_equipment}}</view>
+      <view class="card-actions">
+        <view class="favorite-btn {{item.is_favorite ? 'active' : ''}}" data-id="{{item._id}}" catchtap="toggleFavorite">{{item.favorite_label}}</view>
+        <view class="tag">{{item.display_equipment}}</view>
+      </view>
     </view>
     <view class="meta">{{item.display_body_part}} · {{item.target}}</view>
     <view class="steps" wx:if="{{item.first_step}}">{{item.first_step}}</view>

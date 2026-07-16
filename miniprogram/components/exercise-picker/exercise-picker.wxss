@@ -31,9 +31,13 @@
   margin-bottom: 18rpx;
 }
 .list { max-height: 58vh; }
+.group-title { color: #667085; font-size: 24rpx; margin: 10rpx 0 4rpx; }
+.all-title { margin-top: 18rpx; }
 .item {
   padding: 22rpx 4rpx;
   border-bottom: 1rpx solid #eaecf0;
 }
+.item.favorite { background: #fffbeb; border-radius: 18rpx; padding-left: 18rpx; padding-right: 18rpx; margin-bottom: 10rpx; border-bottom: 0; }
 .item-name { font-size: 30rpx; font-weight: 700; }
 .item-meta { margin-top: 8rpx; font-size: 24rpx; color: #667085; }
+.favorite-mark { color: #c2410c; background: #ffedd5; border-radius: 999rpx; padding: 8rpx 14rpx; font-size: 22rpx; }
