@@ -34,6 +34,49 @@ function mapSelectableOptions(options, selected) {
   }));
 }
 
+const RECENT_SESSION_FILTERS = [
+  { value: 'all', label: '全部' },
+  { value: 'same_goal', label: '同目标' },
+  { value: 'same_location', label: '同场所' },
+  { value: 'same_context', label: '同目标+场所' },
+];
+
+function labelOf(options, value) {
+  const item = options.find((option) => option.value === value);
+  return item ? item.label : value;
+}
+
+function matchesRecentSessionFilter(session, form, filter) {
+  const sameGoal = session.goal_type === form.goal_type;
+  const sameLocation = session.location === form.location;
+  if (filter === 'same_goal') return sameGoal;
+  if (filter === 'same_location') return sameLocation;
+  if (filter === 'same_context') return sameGoal && sameLocation;
+  return true;
+}
+
+function mapRecentSessionForView(session, form) {
+  const sameGoal = session.goal_type === form.goal_type;
+  const sameLocation = session.location === form.location;
+  const badges = [];
+  if (sameGoal) badges.push('同目标');
+  if (sameLocation) badges.push('同场所');
+  return Object.assign({}, session, {
+    location_label: labelOf(LOCATION_OPTIONS, session.location),
+    goal_label: labelOf(GOAL_OPTIONS, session.goal_type),
+    match_text: badges.join(' · '),
+  });
+}
+
+function buildRecentSessionFilterOptions(sessions, form, activeValue) {
+  return RECENT_SESSION_FILTERS.map((filter) => ({
+    value: filter.value,
+    label: filter.label,
+    count: sessions.filter((session) => matchesRecentSessionFilter(session, form, filter.value)).length,
+    active: filter.value === activeValue,
+  }));
+}
+
 function buildIntent(form) {
   const timeLimit = String(form.time_limit_min || '').trim();
   return {
@@ -118,6 +161,9 @@ Page({
     startDisabled: false,
     blocks: [],
     recentSessions: [],
+    recentSessionsAll: [],
+    recentSessionFilter: 'all',
+    recentSessionFilterOptions: buildRecentSessionFilterOptions([], {}, 'all'),
     pickerVisible: false,
     pendingBlockType: 'single',
     pendingExercises: [],
@@ -203,11 +249,30 @@ Page({
 
   async loadRecentSessions() {
     try {
-      const recentSessions = await listRecentSessions(5);
-      this.setData({ recentSessions });
+      const recentSessions = await listRecentSessions(20);
+      this.setData({ recentSessionsAll: recentSessions }, () => this.applyRecentSessionFilter());
     } catch (error) {
       console.warn('读取最近训练失败', error);
     }
+  },
+
+  applyRecentSessionFilter() {
+    const filter = this.data.recentSessionFilter;
+    const form = this.data.form;
+    const sessions = this.data.recentSessionsAll || [];
+    const filtered = sessions
+      .filter((session) => matchesRecentSessionFilter(session, form, filter))
+      .slice(0, 5)
+      .map((session) => mapRecentSessionForView(session, form));
+    this.setData({
+      recentSessions: filtered,
+      recentSessionFilterOptions: buildRecentSessionFilterOptions(sessions, form, filter),
+    });
+  },
+
+  onRecentSessionFilterTap(event) {
+    const value = event.currentTarget.dataset.value || 'all';
+    this.setData({ recentSessionFilter: value }, () => this.applyRecentSessionFilter());
   },
 
   onFormInput(event) {
@@ -220,7 +285,7 @@ Page({
     this.setData({
       locationIndex: index,
       'form.location': LOCATION_OPTIONS[index].value,
-    });
+    }, () => this.applyRecentSessionFilter());
   },
 
   onGoalChange(event) {
@@ -228,7 +293,7 @@ Page({
     this.setData({
       goalIndex: index,
       'form.goal_type': GOAL_OPTIONS[index].value,
-    });
+    }, () => this.applyRecentSessionFilter());
   },
 
   onIntentChange(event) {

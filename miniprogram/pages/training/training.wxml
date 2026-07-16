@@ -124,12 +124,23 @@
   </view>
 
   <view class="card">
-    <view class="section-title">最近训练</view>
-    <empty-state wx:if="{{recentSessions.length === 0}}" title="暂无历史" desc="完成一次训练后会显示" />
+    <view class="row between recent-head">
+      <view>
+        <view class="section-title">最近训练</view>
+        <view class="recent-desc">按今天的目标和场所筛选，快速复制同类训练</view>
+      </view>
+    </view>
+    <view class="chip-list recent-filter-list">
+      <view wx:for="{{recentSessionFilterOptions}}" wx:key="value" class="chip recent-filter {{item.active ? 'active' : ''}} {{item.count === 0 ? 'disabled' : ''}}" data-value="{{item.value}}" bindtap="onRecentSessionFilterTap">
+        {{item.label}} {{item.count}}
+      </view>
+    </view>
+    <empty-state wx:if="{{recentSessions.length === 0}}" title="暂无匹配历史" desc="换个筛选条件，或完成一次训练后再复制" />
     <view wx:for="{{recentSessions}}" wx:key="_id" class="session-row">
       <view>
         <view class="session-title">{{item.title}}</view>
-        <view class="session-meta">{{item.date}} · {{item.location}} · {{item.goal_type}}</view>
+        <view class="session-meta">{{item.date}} · {{item.location_label}} · {{item.goal_label}}</view>
+        <view wx:if="{{item.match_text}}" class="session-match">{{item.match_text}}</view>
       </view>
       <view class="session-actions">
         <button class="small-btn ghost" data-id="{{item._id}}" catchtap="copyRecentSession">复制</button>
