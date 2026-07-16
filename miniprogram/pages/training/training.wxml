@@ -88,7 +88,10 @@
       <view class="section-title">训练块</view>
       <view class="mini-actions">
         <button class="small-btn" data-type="single" bindtap="openPicker">普通组</button>
-        <button class="small-btn" data-type="superset" bindtap="openPicker">超级组</button>
+        <picker class="superset-size-picker" range="{{supersetSizeOptions}}" value="{{supersetSizeIndex}}" bindchange="onSupersetSizeChange">
+          <view class="small-btn size-btn">{{supersetTargetSize}} 动作</view>
+        </picker>
+        <button class="small-btn" data-type="superset" bindtap="openPicker">添加超级组</button>
       </view>
     </view>
     <empty-state wx:if="{{blocks.length === 0}}" title="还没有训练块" desc="先添加普通组或超级组" />

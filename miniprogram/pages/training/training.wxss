@@ -2,6 +2,8 @@
 .hero .title, .hero .subtitle { color: #fff; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; }
 .mini-actions { display: flex; gap: 12rpx; }
+.superset-size-picker { flex: none; }
+.small-btn.size-btn { background: #fff7ed; color: #c2410c; }
 .small-btn {
   min-height: 58rpx;
   line-height: 58rpx;

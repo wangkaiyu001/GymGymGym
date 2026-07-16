@@ -41,6 +41,8 @@ const RECENT_SESSION_FILTERS = [
   { value: 'same_context', label: '同目标+场所' },
 ];
 
+const SUPERSET_SIZE_OPTIONS = [2, 3, 4];
+
 function labelOf(options, value) {
   const item = options.find((option) => option.value === value);
   return item ? item.label : value;
@@ -167,6 +169,9 @@ Page({
     pickerVisible: false,
     pendingBlockType: 'single',
     pendingExercises: [],
+    supersetSizeOptions: SUPERSET_SIZE_OPTIONS,
+    supersetSizeIndex: 0,
+    supersetTargetSize: SUPERSET_SIZE_OPTIONS[0],
     favoriteExerciseIds: [],
     recommendedExercises: [],
     form: {
@@ -374,8 +379,16 @@ Page({
       pickerVisible: true,
     });
     if (type === 'superset') {
-      wx.showToast({ title: '请选择超级组第1个动作', icon: 'none' });
+      wx.showToast({ title: `请选择第1/${this.data.supersetTargetSize}个动作`, icon: 'none' });
     }
+  },
+
+  onSupersetSizeChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({
+      supersetSizeIndex: index,
+      supersetTargetSize: SUPERSET_SIZE_OPTIONS[index],
+    });
   },
 
   closePicker() {
@@ -384,10 +397,16 @@ Page({
 
   onExerciseSelected(event) {
     const exercise = event.detail.exercise;
+    if (!exercise) return;
+    if (this.data.pendingExercises.some((item) => item._id === exercise._id)) {
+      wx.showToast({ title: '这个动作已经选过了', icon: 'none' });
+      return;
+    }
     const pending = this.data.pendingExercises.concat(exercise);
-    if (this.data.pendingBlockType === 'superset' && pending.length < 2) {
+    const targetSize = this.data.pendingBlockType === 'superset' ? this.data.supersetTargetSize : 1;
+    if (pending.length < targetSize) {
       this.setData({ pendingExercises: pending });
-      wx.showToast({ title: '再选1个动作组成超级组', icon: 'none' });
+      wx.showToast({ title: `再选${targetSize - pending.length}个动作`, icon: 'none' });
       return;
     }
     this.createLocalBlock(pending);
