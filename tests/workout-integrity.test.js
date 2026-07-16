@@ -14,5 +14,7 @@ assert.equal(statsSource.includes("session.status === 'completed'"), true, 'Stat
 assert.equal(statsSource.includes('completedSets.reduce'), true, 'Stats aggregation must use completed sets');
 assert.equal(profileSource.includes('completedSessionIds'), true, 'Profile fallback must exclude draft sets');
 assert.equal(profileSource.includes('listAllSessions(1000)'), true, 'Backup must include draft sessions consistently');
+assert.equal(trainingSource.includes('discardWorkout()'), true, 'User must be able to delete a cloud draft');
+assert.equal(dbSource.includes("deleteOwnedDocument('workout_sessions'"), true, 'Session deletion must enforce ownership');
 
 console.log('workout-integrity tests passed');

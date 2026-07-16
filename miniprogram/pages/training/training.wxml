@@ -135,7 +135,10 @@
         </view>
       </view>
     </view>
-    <button wx:if="{{blocks.length > 0}}" class="btn btn-primary finish" loading="{{isSaving}}" disabled="{{isSaving}}" bindtap="saveWorkout">{{isSaving ? '保存中...' : '保存并结束训练'}}</button>
+    <view wx:if="{{blocks.length > 0 || sessionId}}" class="workout-footer-actions">
+      <button class="btn btn-danger" disabled="{{isSaving}}" bindtap="discardWorkout">放弃训练</button>
+      <button wx:if="{{blocks.length > 0}}" class="btn btn-primary" loading="{{isSaving}}" disabled="{{isSaving}}" bindtap="saveWorkout">{{isSaving ? '保存中...' : '保存并结束训练'}}</button>
+    </view>
   </view>
 
   <view class="card">

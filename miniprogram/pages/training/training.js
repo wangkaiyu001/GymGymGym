@@ -12,6 +12,7 @@ const {
   getUserContext,
   createSession,
   updateSession,
+  deleteSession: removeWorkoutSession,
   addBlock,
   addSet,
   listRecentSessions,
@@ -600,6 +601,35 @@ Page({
       this.setData({ isSaving: false });
       wx.hideLoading();
     }
+  },
+
+  discardWorkout() {
+    if (!this.data.sessionId && this.data.blocks.length === 0) return;
+    wx.showModal({
+      title: '放弃当前训练？',
+      content: '当前训练块和云端草稿都会删除，且无法恢复。',
+      confirmText: '放弃',
+      confirmColor: '#d92d20',
+      success: async (result) => {
+        if (!result.confirm) return;
+        wx.showLoading({ title: '清理草稿' });
+        try {
+          if (this.data.sessionId) {
+            const bundle = await getSessionBundle(this.data.sessionId);
+            for (let i = 0; i < bundle.sets.length; i += 1) await deleteSet(bundle.sets[i]._id);
+            for (let i = 0; i < bundle.blocks.length; i += 1) await deleteBlock(bundle.blocks[i]._id);
+            await removeWorkoutSession(this.data.sessionId);
+          }
+          this.setData({ sessionId: '', blocks: [], startDisabled: false });
+          wx.showToast({ title: '已放弃', icon: 'success' });
+        } catch (error) {
+          wx.showToast({ title: '清理失败', icon: 'none' });
+          console.error(error);
+        } finally {
+          wx.hideLoading();
+        }
+      },
+    });
   },
 
   goSessionDetail(event) {

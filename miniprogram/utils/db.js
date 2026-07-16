@@ -257,6 +257,10 @@ async function updateSession(sessionId, patch) {
   return updateOwnedDocument('workout_sessions', sessionId, Object.assign({}, patch, { updated_at: now() }));
 }
 
+async function deleteSession(sessionId) {
+  return deleteOwnedDocument('workout_sessions', sessionId);
+}
+
 async function addBlock(payload) {
   const time = now();
   const result = await database().collection('workout_blocks').add({
@@ -418,6 +422,7 @@ module.exports = {
   getExerciseById,
   createSession,
   updateSession,
+  deleteSession,
   addBlock,
   updateBlock,
   deleteBlock,
