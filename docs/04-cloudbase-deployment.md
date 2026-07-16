@@ -8,7 +8,7 @@ Env Name: code-realtime
 Region: ap-shanghai
 ```
 
-## 2. CLI 状态
+## 2. CLI / Codex Toolkit 状态
 
 本机已安装 CloudBase CLI：
 
@@ -23,6 +23,22 @@ tcb --version
 tcb env use code-realtime-d7gbuxrbze297e600
 ```
 
+Codex / CloudBase AI Toolkit 侧参考文档：
+
+```text
+https://docs.cloudbase.net/ai/cloudbase-ai-toolkit/ide-setup/openai-codex-cli
+```
+
+如需检查本机 MCP / mcporter 配置，可执行：
+
+```bash
+npx mcporter list | grep cloudbase
+npx mcporter describe cloudbase --all-parameters
+```
+
+当前项目已经在 `cloudbaserc.json` 中固定目标环境 ID，脚本和小程序端也显式使用
+`code-realtime-d7gbuxrbze297e600`，避免误操作到其他环境。
+
 如果出现以下提示，说明本机登录态已失效，需要重新登录后再执行部署或数据库写入：
 
 ```text
@@ -36,11 +52,17 @@ tcb login
 tcb env use code-realtime-d7gbuxrbze297e600
 ```
 
-Codex 中的 CloudBase AI Toolkit / MCP 可参考官方配置文档：
+### 2.1 当前登录态说明
 
-```text
-https://docs.cloudbase.net/ai/cloudbase-ai-toolkit/ide-setup/openai-codex-cli
+此前 Codex 已验证过云函数部署状态；但最近一次再次尝试运行：
+
+```bash
+tcb env use code-realtime-d7gbuxrbze297e600
+tcb fn list --json
 ```
+
+时出现过登录态失效提示。因此，只要后续 CLI 提示 `No valid identity information`，先由用户执行
+`tcb login`，再继续部署或验证即可。该登录操作需要用户在浏览器中完成授权，不能由代码仓库替代。
 
 ## 3. 部署云函数
 
@@ -64,10 +86,13 @@ tcb fn deploy recalculateStats
 tcb fn list --env-id code-realtime-d7gbuxrbze297e600
 ```
 
-最近一次 Codex 部署验证：2026-07-16 09:27（Asia/Shanghai）。以下函数均显示 `Deployment completed`：
+此前 Codex 部署验证记录：2026-07-16（Asia/Shanghai）。以下函数均显示过 `Deployment completed`：
 
 - `getUserContext`，运行时 `Nodejs18.15`
 - `recalculateStats`，运行时 `Nodejs18.15`
+
+说明：最近新增的“根据今天场景推荐动作”能力在小程序端完成，不依赖新增云函数；如果只是验证该功能，
+不需要重新部署云函数。
 
 ## 4. 数据库集合
 
@@ -135,3 +160,10 @@ tcb db nosql execute --command '[{"TableName":"exercises","CommandType":"QUERY",
 ## 7. 最后上线
 
 由于该项目是私人使用，不建议发布到公开小程序广场之前投入过多审核适配。可先通过体验版/开发版给两个人使用。
+
+上线前最后确认：
+
+1. `project.config.json` 的 `appid` 已替换为真实小程序 AppID。
+2. 微信开发者工具中的云开发环境为 `code-realtime-d7gbuxrbze297e600`。
+3. 数据库安全规则已按 `database/security-rules.json` 配置。
+4. 两个真实微信用户分别扫码测试，只能看到自己的训练、目标和档案。

@@ -35,6 +35,35 @@ CloudBase 环境：
 - 在训练详情中修改训练标题、日期、场所、目标和备注。
 - 在训练详情中修正或删除误录的训练组/训练块。
 
+当前 Git 状态基线：
+
+```text
+分支：main
+上一轮功能提交：393f05c Add contextual exercise recommendations
+```
+
+说明：如果本地后续又有新提交，请以 `git log --oneline -5` 和 GitHub 仓库页面为准。
+
+## CloudBase 当前注意事项
+
+- CloudBase CLI 已安装，版本为 `3.5.0`。
+- 项目配置、脚本和小程序端均使用环境 `code-realtime-d7gbuxrbze297e600`。
+- `getUserContext` 和 `recalculateStats` 此前已部署并验证过 `Deployment completed`。
+- 最近一次再次验证时，本机 CLI 出现过登录态失效提示：
+
+```text
+No valid identity information, please use cloudbase login to login
+```
+
+如果继续部署、查云函数或导入数据，请先执行：
+
+```bash
+tcb login
+tcb env use code-realtime-d7gbuxrbze297e600
+```
+
+“根据今天场景推荐动作”是小程序端能力，不需要新增或重新部署云函数。
+
 ## 常见修正流程
 
 ### 收藏常用动作
@@ -86,6 +115,21 @@ hasaneyldrm/exercises-dataset
 
 3. 编译并预览。
 4. 手机扫码体验。
+
+## 建议的端到端验收顺序
+
+1. 保存一次“目标设置”。
+2. 打开“动作库”，搜索动作并收藏 2-3 个常用动作。
+3. 在动作库开启“只看收藏”，确认收藏结果正确。
+4. 回到“训练”，填写今天想练部位、可用器材、策略和身体状态。
+5. 检查“根据今天场景推荐”，点击一个推荐动作“加入”。
+6. 添加一个普通组并记录重量、次数、RPE。
+7. 添加一个超级组并记录两轮。
+8. 保存训练。
+9. 从最近训练复制一份，修改重量后再保存。
+10. 进入训练详情，编辑训练信息、编辑某一组、删除一组测试数据。
+11. 打开“档案”，点击“重算”，确认最大重量、总组数和容量更新。
+12. 两个人分别扫码测试，确认只能看到自己的训练和档案。
 
 ## 每次开发后建议同步
 

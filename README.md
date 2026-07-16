@@ -111,9 +111,24 @@ npm run import:exercises -- --apply --limit 5
 
 ```bash
 npm run check
+git diff --check
 ```
 
 该命令会检查小程序页面文件、云函数文件和 JSON 配置是否齐全。
+
+## 当前部署备注
+
+- CloudBase CLI 已安装并识别为 `3.5.0`。
+- `cloudbaserc.json`、`miniprogram/app.js` 均已固定环境 `code-realtime-d7gbuxrbze297e600`。
+- 如果执行 CloudBase 命令时提示 `No valid identity information`，说明本机 CLI 登录态过期，需要先运行：
+
+```bash
+tcb login
+tcb env use code-realtime-d7gbuxrbze297e600
+```
+
+- 最近新增的场景化动作推荐在小程序端实现，不需要新增云函数。
+- 微信小程序 AppID 仍需用户本人把 `project.config.json` 中的 `touristappid` 替换为真实 AppID。
 
 ## 文档
 
