@@ -6,6 +6,7 @@ const root = path.resolve(__dirname, '..');
 const dbSource = fs.readFileSync(path.join(root, 'miniprogram/utils/db.js'), 'utf8');
 const trainingSource = fs.readFileSync(path.join(root, 'miniprogram/pages/training/training.js'), 'utf8');
 const profileSource = fs.readFileSync(path.join(root, 'miniprogram/pages/profile/profile.js'), 'utf8');
+const detailSource = fs.readFileSync(path.join(root, 'miniprogram/pages/session-detail/session-detail.js'), 'utf8');
 const statsSource = fs.readFileSync(path.join(root, 'cloudfunctions/recalculateStats/index.js'), 'utf8');
 
 assert.equal(dbSource.includes("where: { status: 'completed' }"), true, 'Recent sessions must exclude drafts');
@@ -19,5 +20,6 @@ assert.equal(trainingSource.includes('restoreLatestDraft()'), true, 'Latest clou
 assert.equal(trainingSource.includes('remote_id: set._id'), true, 'Restored sets must retain remote ids to avoid duplicates');
 assert.equal(dbSource.includes("deleteOwnedDocument('workout_sessions'"), true, 'Session deletion must enforce ownership');
 assert.equal(dbSource.includes("where: { status: 'draft' }"), true, 'Draft lookup must explicitly filter status');
+assert.equal(detailSource.includes("status: 'draft', ended_at: null"), true, 'Deleting the final block must remove the session from completed history');
 
 console.log('workout-integrity tests passed');

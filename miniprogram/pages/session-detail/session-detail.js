@@ -236,6 +236,9 @@ Page({
         await removeWorkoutSet(block.sets[i]._id);
       }
       await removeWorkoutBlock(block._id);
+      if (this.data.blocks.length === 1) {
+        await updateSession(this.data.id, { status: 'draft', ended_at: null });
+      }
       await this.recalculateStats();
       wx.showToast({ title: '已删除', icon: 'success' });
       this.load(this.data.id);

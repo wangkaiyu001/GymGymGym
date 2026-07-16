@@ -255,6 +255,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - “训练详情”页支持编辑已保存训练的标题、日期、场所、目标和备注。
 - “训练详情”页支持编辑已保存 set 的重量、次数、RPE、热身/力竭。
 - “训练详情”页支持删除单个 set 或整个 block；删除 block 时先删除其下所有 set，再删除 block。
+- 删除 completed 训练的最后一个 block 后，session 自动退回 draft 并从最近训练/档案统计中移除，避免空完成记录。
 - 编辑或删除后调用 `recalculateStats`，保证个人档案跟随训练明细变化。
 - “目标”页使用 `user_goals` 保存多个结构化目标，支持创建、完成、恢复和删除；目标列表显式按当前 OpenID 查询。
 
