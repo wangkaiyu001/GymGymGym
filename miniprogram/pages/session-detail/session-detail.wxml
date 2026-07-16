@@ -5,6 +5,37 @@
     <view class="note" wx:if="{{session.notes}}">{{session.notes}}</view>
   </view>
 
+  <view class="card">
+    <view class="section-title">训练信息</view>
+    <view class="field">
+      <view class="label">训练标题</view>
+      <input class="input" value="{{sessionForm.title}}" data-key="title" bindinput="onSessionInput" placeholder="例如 胸肩三头 / 腿部力量" />
+    </view>
+    <view class="field">
+      <view class="label">日期</view>
+      <input class="input" value="{{sessionForm.date}}" data-key="date" bindinput="onSessionInput" placeholder="YYYY-MM-DD" />
+    </view>
+    <view class="field two-col">
+      <view>
+        <view class="label">场所</view>
+        <picker range="{{locationLabels}}" value="{{locationIndex}}" bindchange="onLocationChange">
+          <view class="picker-like">{{locationLabels[locationIndex]}}</view>
+        </picker>
+      </view>
+      <view>
+        <view class="label">目标</view>
+        <picker range="{{goalLabels}}" value="{{goalIndex}}" bindchange="onGoalChange">
+          <view class="picker-like">{{goalLabels[goalIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+    <view class="field">
+      <view class="label">备注</view>
+      <textarea class="textarea" value="{{sessionForm.notes}}" data-key="notes" bindinput="onSessionInput" placeholder="补充今天状态、场地情况或复盘" />
+    </view>
+    <button class="btn btn-secondary" loading="{{isSavingSession}}" disabled="{{isSavingSession}}" bindtap="saveSession">保存训练信息</button>
+  </view>
+
   <empty-state wx:if="{{blocks.length === 0}}" title="暂无训练块" desc="这次训练还没有明细" />
   <view wx:for="{{blocks}}" wx:key="_id" class="card">
     <view class="row between block-head">

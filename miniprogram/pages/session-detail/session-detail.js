@@ -1,11 +1,18 @@
 const {
   getSessionBundle,
   getExerciseById,
+  updateSession,
   updateSet,
   deleteSet: removeWorkoutSet,
   deleteBlock: removeWorkoutBlock,
 } = require('../../utils/db');
 const { toNumber } = require('../../utils/format');
+const { GOAL_OPTIONS, LOCATION_OPTIONS } = require('../../utils/constants');
+
+function indexOfValue(options, value) {
+  const index = options.findIndex((item) => item.value === value);
+  return index >= 0 ? index : 0;
+}
 
 function findSet(blocks, blockIndex, setId) {
   const block = blocks[blockIndex];
@@ -17,7 +24,19 @@ Page({
   data: {
     id: '',
     session: {},
+    sessionForm: {
+      title: '',
+      date: '',
+      location: '',
+      goal_type: '',
+      notes: '',
+    },
     blocks: [],
+    goalLabels: GOAL_OPTIONS.map((item) => item.label),
+    locationLabels: LOCATION_OPTIONS.map((item) => item.label),
+    goalIndex: 0,
+    locationIndex: 0,
+    isSavingSession: false,
     savingSetId: '',
     deletingId: '',
   },
@@ -48,12 +67,67 @@ Page({
       }));
       const session = bundle.session || {};
       session.display_title = session.title || '训练详情';
-      this.setData({ session, blocks });
+      this.setData({
+        session,
+        sessionForm: {
+          title: session.title || '',
+          date: session.date || '',
+          location: session.location || LOCATION_OPTIONS[0].value,
+          goal_type: session.goal_type || GOAL_OPTIONS[0].value,
+          notes: session.notes || '',
+        },
+        goalIndex: indexOfValue(GOAL_OPTIONS, session.goal_type),
+        locationIndex: indexOfValue(LOCATION_OPTIONS, session.location),
+        blocks,
+      });
     } catch (error) {
       wx.showToast({ title: '加载失败', icon: 'none' });
       console.error(error);
     } finally {
       wx.hideLoading();
+    }
+  },
+
+  onSessionInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`sessionForm.${key}`]: event.detail.value });
+  },
+
+  onLocationChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({
+      locationIndex: index,
+      'sessionForm.location': LOCATION_OPTIONS[index].value,
+    });
+  },
+
+  onGoalChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({
+      goalIndex: index,
+      'sessionForm.goal_type': GOAL_OPTIONS[index].value,
+    });
+  },
+
+  async saveSession() {
+    if (!this.data.id || this.data.isSavingSession) return;
+    const form = this.data.sessionForm;
+    this.setData({ isSavingSession: true });
+    try {
+      await updateSession(this.data.id, {
+        title: form.title || '训练详情',
+        date: form.date,
+        location: form.location,
+        goal_type: form.goal_type,
+        notes: form.notes,
+      });
+      wx.showToast({ title: '训练信息已保存', icon: 'success' });
+      this.load(this.data.id);
+    } catch (error) {
+      wx.showToast({ title: '保存失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      this.setData({ isSavingSession: false });
     }
   },
 
