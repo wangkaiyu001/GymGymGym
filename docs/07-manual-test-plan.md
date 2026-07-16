@@ -100,6 +100,8 @@ code-realtime-d7gbuxrbze297e600
 4. 确认“近期训练摘要”显示近 7 天和近 30 天的训练次数、有效组数、总次数与容量。
 5. 确认“PR 关注”最多展示 3 个带重量动作，并按估算 1RM（无 1RM 时按最大重量）从高到低排列。
 6. 确认动作表现里显示最大重量和估算 1RM。
+7. 点击“导出 JSON 备份”，确认生成 `GymGymGym-backup-日期.json` 并出现微信文件分享面板。
+8. 打开导出的 JSON，确认包含 `workout_sessions`、`workout_blocks`、`workout_sets`、`exercise_stats` 和 `user_goals`。
 
 通过标准：
 
@@ -107,6 +109,7 @@ code-realtime-d7gbuxrbze297e600
 - `exercise_stats` 按当前 OpenID 写入统计。
 - 如果云函数暂不可用，页面仍可基于最近 `workout_sets` 做轻量 fallback 展示。
 - 近期摘要只统计对应时间窗口内的正式组，热身组不计入有效组、次数和容量。
+- JSON 备份仅包含当前 OpenID 数据，导出过程不修改云端记录。
 
 ## 7. 真机验收
 

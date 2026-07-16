@@ -23,6 +23,14 @@
     </view>
   </view>
 
+  <view class="card backup-card">
+    <view>
+      <view class="section-title">数据备份</view>
+      <view class="backup-desc">导出当前账号的训练、组明细、档案统计和具体目标为 JSON 文件。</view>
+    </view>
+    <button class="btn btn-secondary backup-btn" loading="{{isExporting}}" disabled="{{isExporting}}" bindtap="exportBackup">{{isExporting ? '生成中...' : '导出 JSON 备份'}}</button>
+  </view>
+
   <view class="card">
     <view class="section-title">近期训练摘要</view>
     <view class="period-list">

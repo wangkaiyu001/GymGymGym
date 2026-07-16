@@ -21,6 +21,10 @@
 .pr-rank { width: 46rpx; height: 46rpx; border-radius: 50%; background: #e8f0ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-weight: 800; }
 .pr-content { flex: 1; min-width: 0; }
 .pr-score { color: #2563eb; font-size: 26rpx; font-weight: 800; margin-left: 16rpx; white-space: nowrap; }
+.backup-card { display: flex; align-items: center; justify-content: space-between; gap: 22rpx; }
+.backup-card .section-title { margin-bottom: 8rpx; }
+.backup-desc { color: #667085; font-size: 23rpx; line-height: 1.5; }
+.backup-btn { flex: none; min-width: 230rpx; padding: 0 22rpx; }
 .stat-row { padding: 22rpx 0; border-top: 1rpx solid #eaecf0; }
 .stat-name { font-size: 30rpx; font-weight: 800; }
 .stat-meta { color: #667085; font-size: 24rpx; margin-top: 6rpx; }

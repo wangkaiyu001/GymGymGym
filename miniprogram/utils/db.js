@@ -38,6 +38,23 @@ function ownedWhere(db, conditions) {
   return conditions ? Object.assign({}, conditions, ownerCondition) : ownerCondition;
 }
 
+async function listOwnedDocuments(collectionName, options) {
+  const config = options || {};
+  const db = database();
+  const requestedLimit = Math.max(1, Number(config.limit) || 20);
+  const pageSize = Math.min(20, requestedLimit);
+  const items = [];
+  while (items.length < requestedLimit) {
+    let query = db.collection(collectionName).where(ownedWhere(db, config.where));
+    if (config.orderBy) query = query.orderBy(config.orderBy, config.order || 'desc');
+    const result = await query.skip(items.length).limit(Math.min(pageSize, requestedLimit - items.length)).get();
+    const page = result.data || [];
+    items.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return items;
+}
+
 async function callFunction(name, data) {
   const result = await wx.cloud.callFunction({ name, data: data || {} });
   return result.result;
@@ -271,26 +288,20 @@ async function getSessionBundle(sessionId) {
 }
 
 async function listRecentSessions(limit) {
-  const db = database();
-  const result = await db
-    .collection('workout_sessions')
-    .where(ownedWhere(db))
-    .orderBy('date', 'desc')
-    .limit(limit || 10)
-    .get();
-  return result.data || [];
+  return listOwnedDocuments('workout_sessions', {
+    orderBy: 'date',
+    order: 'desc',
+    limit: limit || 10,
+  });
 }
 
 async function listExerciseStats() {
   try {
-    const db = database();
-    const result = await db
-      .collection('exercise_stats')
-      .where(ownedWhere(db))
-      .orderBy('updated_at', 'desc')
-      .limit(100)
-      .get();
-    return result.data || [];
+    return await listOwnedDocuments('exercise_stats', {
+      orderBy: 'updated_at',
+      order: 'desc',
+      limit: 100,
+    });
   } catch (error) {
     return [];
   }
@@ -298,27 +309,30 @@ async function listExerciseStats() {
 
 async function listWorkoutSets(limit) {
   try {
-    const db = database();
-    const result = await db
-      .collection('workout_sets')
-      .where(ownedWhere(db))
-      .orderBy('created_at', 'desc')
-      .limit(limit || 500)
-      .get();
-    return result.data || [];
+    return await listOwnedDocuments('workout_sets', {
+      orderBy: 'created_at',
+      order: 'desc',
+      limit: limit || 500,
+    });
   } catch (error) {
     return [];
   }
 }
 
 async function listUserGoals(limit) {
-  const db = database();
-  const result = await db.collection('user_goals')
-    .where(ownedWhere(db))
-    .orderBy('created_at', 'desc')
-    .limit(limit || 20)
-    .get();
-  return result.data || [];
+  return listOwnedDocuments('user_goals', {
+    orderBy: 'created_at',
+    order: 'desc',
+    limit: limit || 20,
+  });
+}
+
+async function listWorkoutBlocks(limit) {
+  return listOwnedDocuments('workout_blocks', {
+    orderBy: 'created_at',
+    order: 'desc',
+    limit: limit || 500,
+  });
 }
 
 async function addUserGoal(payload) {
@@ -383,6 +397,7 @@ module.exports = {
   listRecentSessions,
   listExerciseStats,
   listWorkoutSets,
+  listWorkoutBlocks,
   listUserGoals,
   addUserGoal,
   updateUserGoal,

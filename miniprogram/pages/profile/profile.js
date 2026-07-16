@@ -3,6 +3,8 @@ const {
   getUserContext,
   listExerciseStats,
   listRecentSessions,
+  listUserGoals,
+  listWorkoutBlocks,
   listWorkoutSets,
 } = require('../../utils/db');
 const { formatDate } = require('../../utils/format');
@@ -58,6 +60,7 @@ Page({
       totalReps: 0,
       totalVolume: 0,
     },
+    isExporting: false,
   },
 
   onShow() {
@@ -114,6 +117,56 @@ Page({
       wx.showToast({ title: '重算失败', icon: 'none' });
       console.error(error);
     } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async exportBackup() {
+    if (this.data.isExporting) return;
+    this.setData({ isExporting: true });
+    wx.showLoading({ title: '生成备份' });
+    try {
+      const app = getApp();
+      if (!app.globalData.userContext) {
+        const context = await getUserContext();
+        app.globalData.userContext = context;
+      }
+      const [sessions, blocks, sets, stats, goals] = await Promise.all([
+        listRecentSessions(1000),
+        listWorkoutBlocks(1000),
+        listWorkoutSets(1000),
+        listExerciseStats(),
+        listUserGoals(100),
+      ]);
+      const backup = {
+        format: 'gymgymgym-backup-v1',
+        exported_at: new Date().toISOString(),
+        environment_id: app.globalData.envId,
+        user: app.globalData.userContext.user || {},
+        workout_sessions: sessions,
+        workout_blocks: blocks,
+        workout_sets: sets,
+        exercise_stats: stats,
+        user_goals: goals,
+      };
+      const fileName = `GymGymGym-backup-${formatDate()}.json`;
+      const filePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+      wx.getFileSystemManager().writeFileSync(filePath, JSON.stringify(backup, null, 2), 'utf8');
+      if (wx.shareFileMessage) {
+        await new Promise((resolve, reject) => {
+          wx.shareFileMessage({ filePath, fileName, success: resolve, fail: reject });
+        });
+      } else {
+        wx.setClipboardData({ data: filePath });
+        wx.showModal({ title: '备份已生成', content: '当前微信版本不支持直接分享文件，文件路径已复制。', showCancel: false });
+      }
+    } catch (error) {
+      if (!error || !String(error.errMsg || error.message || '').includes('cancel')) {
+        wx.showToast({ title: '备份失败', icon: 'none' });
+        console.error(error);
+      }
+    } finally {
+      this.setData({ isExporting: false });
       wx.hideLoading();
     }
   },
