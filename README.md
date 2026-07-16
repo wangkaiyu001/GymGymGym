@@ -141,6 +141,7 @@ tcb env use code-realtime-d7gbuxrbze297e600
 - 最近新增的场景化动作推荐在小程序端实现，不需要新增云函数。
 - 2026-07-16 已通过 CloudBase MCP 将 `getUserContext` 和 `recalculateStats` 当前代码部署到线上并确认 `Active`。
 - 7 个数据库集合均已存在，线上安全规则已更新为仓库中的 `CUSTOM` 最小权限规则并回读验证。
+- 当前仓库与 `origin/main` 同步，本地结构检查、统计/提醒/权限测试以及脚本 dry-run 均已通过。
 - 微信小程序 AppID 仍需用户本人把 `project.config.json` 中的 `touristappid` 替换为真实 AppID。
 
 ## 文档

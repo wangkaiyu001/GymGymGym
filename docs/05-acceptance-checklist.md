@@ -4,18 +4,19 @@
 
 ## 1. 仓库
 
-- [ ] GitHub remote 指向 `https://github.com/wangkaiyu001/GymGymGym.git`
-- [ ] 所有代码和文档已 commit
-- [ ] 所有代码和文档已 push
-- [ ] `external/`、`dist/`、密钥和个人凭证没有被提交
-- [ ] `npm run check` 通过
-- [ ] `git diff --check` 通过
+- [x] GitHub remote 指向 `https://github.com/wangkaiyu001/GymGymGym.git`
+- [x] 所有代码和文档已 commit
+- [x] 所有代码和文档已 push
+- [x] `external/`、`dist/`、密钥和个人凭证没有被提交
+- [x] `npm run check` 通过
+- [x] `npm test` 通过
+- [x] `git diff --check` 通过
 
 ## 2. 小程序
 
 - [ ] 微信开发者工具可以打开项目
 - [ ] AppID 已替换为真实 AppID
-- [ ] `wx.cloud.init` 使用 `code-realtime-d7gbuxrbze297e600`
+- [x] `wx.cloud.init` 使用 `code-realtime-d7gbuxrbze297e600`
 - [ ] Tab 能正常切换
 - [ ] 今日训练页能创建训练
 - [ ] 能添加普通组
@@ -47,35 +48,34 @@
 
 ## 3. CloudBase
 
-- [ ] CLI 已登录
-- [ ] 默认环境已切换
-- [ ] 云函数 `getUserContext` 已部署
-- [ ] 云函数 `recalculateStats` 已部署
-- [ ] 数据库集合已创建或可自动创建
-- [ ] 安全规则已配置
-- [ ] 用户数据写规则不包含允许任意新文档的 `!doc._openid` 分支
-- [ ] 创建规则校验 `request.data.user_openid == auth.openid`，更新/删除规则校验 `doc._openid == auth.openid`
-- [ ] `exercise_stats` 禁止小程序客户端直接写入
+- [x] CloudBase MCP 已登录并绑定 `code-realtime-d7gbuxrbze297e600`（CLI 旧登录态可忽略）
+- [x] 云函数 `getUserContext` 已部署并确认为 `Active`
+- [x] 云函数 `recalculateStats` 已部署并确认为 `Active`
+- [x] 7 个数据库集合均已创建
+- [x] 安全规则已配置为 `CUSTOM` 并回读验证
+- [x] 用户数据写规则不包含允许任意新文档的 `!doc._openid` 分支
+- [x] 创建规则校验 `request.data.user_openid == auth.openid`，更新/删除规则校验 `doc._openid == auth.openid`
+- [x] `exercise_stats` 禁止小程序客户端直接写入
 
 ## 4. 数据
 
-- [ ] seed 动作数据可用
-- [ ] 完整动作库已可通过脚本标准化
-- [ ] 完整动作库导入脚本 dry-run 通过
-- [ ] 完整动作库可小批量导入 `exercises`
-- [ ] 完整动作库可全量导入 `exercises`
-- [ ] 训练数据按用户隔离
-- [ ] 训练列表、训练详情、训练组和档案查询显式限定当前 OpenID
-- [ ] 训练、训练块、训练组和目标的更新/删除均使用文档 ID + 当前 OpenID 条件
-- [ ] `user_goals` 查询显式限定当前 OpenID
-- [ ] 超过单页上限的训练、训练块、训练组和目标仍能分页读取并写入备份
+- [x] seed 动作数据可用
+- [x] 完整动作库已通过脚本标准化为 1324 条动作
+- [x] 完整动作库导入脚本 dry-run 通过
+- [x] 完整动作库已完成小批量写入验证
+- [x] 完整动作库已全量导入 `exercises`（线上 1325 条含 1 条 marker）
+- [x] 训练数据按用户隔离的客户端与安全规则边界已实现
+- [x] 训练列表、训练详情、训练组和档案查询显式限定当前 OpenID
+- [x] 训练、训练块、训练组和目标的更新/删除均使用文档 ID + 当前 OpenID 条件
+- [x] `user_goals` 查询显式限定当前 OpenID
+- [x] 超过单页上限的训练、训练块、训练组和目标使用分页读取并写入备份
 
 ## 5. 用户本人必须执行
 
 - [ ] 提供真实微信小程序 AppID
 - [ ] 在微信开发者工具导入项目
 - [ ] 绑定小程序和 CloudBase 环境
-- [ ] 如 CLI 登录态失效，执行 `tcb login` 并重新 `tcb env use code-realtime-d7gbuxrbze297e600`
+- [ ] 如需要手动使用 CLI，再执行 `tcb login`；日常 Codex 部署可使用当前已认证的 CloudBase MCP
 - [ ] 如要公开发布，确认 Gym visual 媒体授权
 
 ## 6. 当前已知限制 / 不作为阻塞项
