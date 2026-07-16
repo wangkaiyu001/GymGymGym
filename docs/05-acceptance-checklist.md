@@ -54,6 +54,7 @@
 - [ ] 数据库集合已创建或可自动创建
 - [ ] 安全规则已配置
 - [ ] 用户数据写规则不包含允许任意新文档的 `!doc._openid` 分支
+- [ ] 创建规则校验 `request.data.user_openid == auth.openid`，更新/删除规则校验 `doc._openid == auth.openid`
 - [ ] `exercise_stats` 禁止小程序客户端直接写入
 
 ## 4. 数据

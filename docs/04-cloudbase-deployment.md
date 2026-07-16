@@ -64,6 +64,11 @@ tcb fn list --json
 时出现过登录态失效提示。因此，只要后续 CLI 提示 `No valid identity information`，先由用户执行
 `tcb login`，再继续部署或验证即可。该登录操作需要用户在浏览器中完成授权，不能由代码仓库替代。
 
+2026-07-16 19:33（Asia/Shanghai）已修复本机 `cloudbase-mcp` 运行包，并通过 MCP 确认：
+
+- 环境 `code-realtime-d7gbuxrbze297e600` 状态为 `NORMAL`，运行后端为 NoSQL。
+- MCP 登录状态为 `READY` 且已经绑定目标环境；CLI 的旧登录态失效不再阻塞 MCP 管理操作。
+
 ## 3. 部署云函数
 
 先查看帮助：
@@ -86,7 +91,7 @@ tcb fn deploy recalculateStats
 tcb fn list --env-id code-realtime-d7gbuxrbze297e600
 ```
 
-此前 Codex 部署验证记录：2026-07-16（Asia/Shanghai）。以下函数均显示过 `Deployment completed`：
+最新部署验证记录：2026-07-16 19:33（Asia/Shanghai）。以下函数已通过 CloudBase MCP 更新代码并再次确认 `Status: Active`：
 
 - `getUserContext`，运行时 `Nodejs18.15`
 - `recalculateStats`，运行时 `Nodejs18.15`
@@ -116,9 +121,16 @@ database/security-rules.json
 
 当前规则要点：
 
-- `workout_sessions`、`workout_blocks`、`workout_sets`、`user_goals` 只允许 `_openid == auth.openid` 的用户写入。
+- `workout_sessions`、`workout_blocks`、`workout_sets`、`user_goals` 创建时要求 `request.data.user_openid == auth.openid`，更新/删除时要求 `_openid == auth.openid`。
 - `exercise_stats` 禁止小程序客户端写入，由 `recalculateStats` 云函数维护。
 - 不要把写规则改回包含 `!doc._openid` 的宽松形式，否则新文档所有权约束可能被绕过。
+
+2026-07-16 已通过 CloudBase MCP 完成线上检查与配置：
+
+- 7 个集合全部存在：`users`、`exercises`、`workout_sessions`、`workout_blocks`、`workout_sets`、`exercise_stats`、`user_goals`。
+- `exercises` 线上记录数为 1325（其中包含 1324 条动作数据和 1 条集合 marker）。
+- 7 个集合均已从 `PRIVATE` 更新为与 `database/security-rules.json` 对应的 `CUSTOM` 规则，并通过 `queryPermissions` 回读验证。
+- CloudBase 提示规则传播可能需要约 2–5 分钟；真机首次写入若暂时出现 `DATABASE_PERMISSION_DENIED`，等待传播后用相同操作重试，不要放宽规则。
 
 可用脚本通过 upsert 系统 marker 文档的方式懒创建集合。脚本不会删除或覆盖训练数据；默认是 dry-run：
 

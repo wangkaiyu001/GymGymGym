@@ -7,10 +7,15 @@ const rules = JSON.parse(fs.readFileSync(path.join(root, 'database/security-rule
 const ownedCollections = ['workout_sessions', 'workout_blocks', 'workout_sets', 'user_goals'];
 
 ownedCollections.forEach((collection) => {
-  assert.equal(rules[collection].write, 'doc._openid == auth.openid');
-  assert.equal(rules[collection].write.includes('!doc._openid'), false);
+  assert.equal(rules[collection].create, 'request.data.user_openid == auth.openid');
+  assert.equal(rules[collection].update, 'doc._openid == auth.openid');
+  assert.equal(rules[collection].delete, 'doc._openid == auth.openid');
+  assert.equal(JSON.stringify(rules[collection]).includes('!doc._openid'), false);
 });
-assert.equal(rules.exercise_stats.write, false);
+assert.equal(rules.exercise_stats.create, false);
+assert.equal(rules.exercise_stats.update, false);
+assert.equal(rules.exercise_stats.delete, false);
+assert.equal(rules.exercises.read, true);
 
 const dbSource = fs.readFileSync(path.join(root, 'miniprogram/utils/db.js'), 'utf8');
 [

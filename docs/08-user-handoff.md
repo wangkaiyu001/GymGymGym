@@ -54,6 +54,8 @@ CloudBase 环境：
 - CloudBase CLI 已安装，版本为 `3.5.0`。
 - 项目配置、脚本和小程序端均使用环境 `code-realtime-d7gbuxrbze297e600`。
 - `getUserContext` 和 `recalculateStats` 此前已部署并验证过 `Deployment completed`。
+- 2026-07-16 19:33 已通过 CloudBase MCP 再次上传两个函数当前代码，并确认两者均为 `Active`。
+- 7 个数据库集合均已存在，安全权限已按仓库规则更新为 `CUSTOM` 并回读验证。
 - 最近一次再次验证时，本机 CLI 出现过登录态失效提示：
 
 ```text
@@ -66,6 +68,8 @@ No valid identity information, please use cloudbase login to login
 tcb login
 tcb env use code-realtime-d7gbuxrbze297e600
 ```
+
+如果使用 Codex 中已经配置好的 CloudBase MCP，则当前认证状态为 `READY`，不必依赖 CLI 的旧登录态。
 
 “根据今天场景推荐动作”是小程序端能力，不需要新增或重新部署云函数。
 

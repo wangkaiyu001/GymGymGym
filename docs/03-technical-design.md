@@ -232,7 +232,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - 小程序端直接新增训练数据时，CloudBase 会自动写入 `_openid`，同时在已获取用户上下文后显式写入 `user_openid`，安全规则兼容 `_openid == auth.openid` 与 `user_openid == auth.openid`。
 - 训练、训练块、训练组和动作统计列表查询会显式附加当前 OpenID 所有权条件；数据库安全规则仍是最终权限边界，客户端过滤作为纵深防护并避免两位用户互相看到列表数据。
 - 训练、训练块、训练组和目标的更新/删除使用 `_id + 当前 OpenID` 条件操作；即使调用方拿到另一个用户的文档 ID，也无法通过客户端 CRUD 修改或删除。
-- 客户端写规则仅允许 `doc._openid == auth.openid`；`exercise_stats` 客户端写入关闭，只允许 `recalculateStats` 云函数使用管理端权限维护。
+- 客户端创建规则校验 `request.data.user_openid == auth.openid`，更新/删除规则校验 `doc._openid == auth.openid`；`exercise_stats` 客户端写入关闭，只允许 `recalculateStats` 云函数使用管理端权限维护。
 - 通用 `listOwnedDocuments` 按小程序数据库单次读取限制分页查询，避免导出或档案统计因记录超过单页上限而静默缺失。
 - 云函数重算统计时补充 `user_openid`，便于后续跨端或管理端迁移。
 - `users` 文档 ID 使用 OpenID；保存用户资料时需要保留已有 `created_at`、`role` 等字段。
