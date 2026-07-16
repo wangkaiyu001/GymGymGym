@@ -1,4 +1,10 @@
-const { listExerciseStats, listRecentSessions } = require('../../utils/db');
+const {
+  getExerciseById,
+  listExerciseStats,
+  listRecentSessions,
+  listWorkoutSets,
+} = require('../../utils/db');
+const { aggregateSets } = require('../../utils/stats');
 
 function dateText(value) {
   if (!value) return '';
@@ -8,6 +14,36 @@ function dateText(value) {
   } catch (error) {
     return '';
   }
+}
+
+async function buildFallbackStats() {
+  const sets = await listWorkoutSets(500);
+  const exerciseIds = Array.from(new Set(sets.map((item) => item.exercise_id).filter(Boolean)));
+  const names = {};
+  for (let i = 0; i < exerciseIds.length; i += 1) {
+    const exercise = await getExerciseById(exerciseIds[i]);
+    names[exerciseIds[i]] = exercise ? (exercise.name_zh || exercise.name) : exerciseIds[i];
+  }
+  return exerciseIds.map((exerciseId) => {
+    const exerciseSets = sets.filter((item) => item.exercise_id === exerciseId);
+    const summary = aggregateSets(exerciseSets);
+    const sessionIds = exerciseSets.reduce((acc, item) => {
+      if (item.session_id) acc[item.session_id] = true;
+      return acc;
+    }, {});
+    const latest = exerciseSets[0] || {};
+    return Object.assign({}, summary, {
+      _id: `local_${exerciseId}`,
+      exercise_id: exerciseId,
+      exercise_name: names[exerciseId],
+      total_sessions: Object.keys(sessionIds).length,
+      total_volume_kg: Math.round(summary.total_volume_kg),
+      max_volume_kg: Math.max.apply(null, exerciseSets.map((item) => (Number(item.weight_kg) || 0) * (Number(item.reps) || 0)).concat([0])),
+      last_performed_at: latest.created_at || latest.updated_at || '',
+      last_weight_kg: Number(latest.weight_kg) || 0,
+      last_reps: Number(latest.reps) || 0,
+    });
+  }).filter((item) => item.total_sets > 0);
 }
 
 Page({
@@ -28,7 +64,8 @@ Page({
   async load() {
     wx.showLoading({ title: '加载中' });
     try {
-      const [stats, sessions] = await Promise.all([listExerciseStats(), listRecentSessions(100)]);
+      const [cloudStats, sessions] = await Promise.all([listExerciseStats(), listRecentSessions(100)]);
+      const stats = cloudStats.length > 0 ? cloudStats : await buildFallbackStats();
       const mapped = stats.map((item) => Object.assign({}, item, {
         display_name: item.exercise_name || item.exercise_id,
         display_last_performed: dateText(item.last_performed_at) || '-',

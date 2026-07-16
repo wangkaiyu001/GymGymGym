@@ -1,5 +1,7 @@
 # GymGymGym 验收清单
 
+详细手动步骤见 `docs/07-manual-test-plan.md`。
+
 ## 1. 仓库
 
 - [ ] GitHub remote 指向 `https://github.com/wangkaiyu001/GymGymGym.git`

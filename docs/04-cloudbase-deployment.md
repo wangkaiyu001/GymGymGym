@@ -64,6 +64,11 @@ tcb fn deploy recalculateStats
 tcb fn list --env-id code-realtime-d7gbuxrbze297e600
 ```
 
+最近一次 Codex 部署验证：2026-07-16 09:27（Asia/Shanghai）。以下函数均显示 `Deployment completed`：
+
+- `getUserContext`，运行时 `Nodejs18.15`
+- `recalculateStats`，运行时 `Nodejs18.15`
+
 ## 4. 数据库集合
 
 建议创建集合：

@@ -142,10 +142,35 @@ async function listExerciseStats() {
   }
 }
 
+async function listWorkoutSets(limit) {
+  try {
+    const result = await database()
+      .collection('workout_sets')
+      .orderBy('created_at', 'desc')
+      .limit(limit || 500)
+      .get();
+    return result.data || [];
+  } catch (error) {
+    return [];
+  }
+}
+
 async function saveUserProfile(openid, data) {
   const time = now();
+  let existing = {};
+  try {
+    const result = await database().collection('users').doc(openid).get();
+    existing = result.data || {};
+  } catch (error) {
+    existing = {};
+  }
   return database().collection('users').doc(openid).set({
-    data: Object.assign({}, data, { openid, updated_at: time }),
+    data: Object.assign({}, existing, data, {
+      _id: openid,
+      openid,
+      created_at: existing.created_at || time,
+      updated_at: time,
+    }),
   });
 }
 
@@ -161,5 +186,6 @@ module.exports = {
   getSessionBundle,
   listRecentSessions,
   listExerciseStats,
+  listWorkoutSets,
   saveUserProfile,
 };

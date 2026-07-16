@@ -110,6 +110,9 @@ npm run check
 - [技术方案](docs/03-technical-design.md)
 - [CloudBase 部署说明](docs/04-cloudbase-deployment.md)
 - [验收清单](docs/05-acceptance-checklist.md)
+- [产品路线图](docs/06-product-roadmap.md)
+- [手动验收流程](docs/07-manual-test-plan.md)
+- [用户交接说明](docs/08-user-handoff.md)
 
 ## 版权说明
 
