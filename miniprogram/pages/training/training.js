@@ -249,6 +249,8 @@ Page({
 
   async loadRecentSessions() {
     try {
+      const app = getApp();
+      if (!app.globalData.userContext) return;
       const recentSessions = await listRecentSessions(20);
       this.setData({ recentSessionsAll: recentSessions }, () => this.applyRecentSessionFilter());
     } catch (error) {

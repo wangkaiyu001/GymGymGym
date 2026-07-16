@@ -48,6 +48,7 @@ Page({
   async load() {
     try {
       const context = await getUserContext();
+      getApp().globalData.userContext = context;
       const profile = Object.assign({}, this.data.profile, context.user || {});
       this.setData({
         openid: context.openid,

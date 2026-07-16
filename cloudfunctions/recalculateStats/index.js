@@ -28,11 +28,16 @@ function calcMetrics(set) {
 
 exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
-  const sets = await getAll('workout_sets', {
-    _openid: OPENID,
+  const ownerCondition = {
+    _or: [
+      { _openid: OPENID },
+      { user_openid: OPENID },
+    ],
+  };
+  const sets = await getAll('workout_sets', Object.assign({}, ownerCondition, {
     is_warmup: _.neq(true),
-  });
-  const sessions = await getAll('workout_sessions', { _openid: OPENID });
+  }));
+  const sessions = await getAll('workout_sessions', ownerCondition);
 
   const exerciseIds = Array.from(new Set(sets.map((set) => set.exercise_id).filter(Boolean)));
   const exerciseNames = {};

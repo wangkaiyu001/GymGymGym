@@ -1,23 +1,24 @@
 const {
   getExerciseById,
+  getUserContext,
   listExerciseStats,
   listRecentSessions,
   listWorkoutSets,
 } = require('../../utils/db');
+const { formatDate } = require('../../utils/format');
 const { aggregateSets } = require('../../utils/stats');
+const { buildPeriodSummary, buildPrHighlights } = require('../../utils/profile-stats');
 
 function dateText(value) {
   if (!value) return '';
   try {
-    const date = new Date(value);
-    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    return formatDate(value);
   } catch (error) {
     return '';
   }
 }
 
-async function buildFallbackStats() {
-  const sets = await listWorkoutSets(500);
+async function buildFallbackStats(sets) {
   const exerciseIds = Array.from(new Set(sets.map((item) => item.exercise_id).filter(Boolean)));
   const names = {};
   for (let i = 0; i < exerciseIds.length; i += 1) {
@@ -49,6 +50,8 @@ async function buildFallbackStats() {
 Page({
   data: {
     stats: [],
+    periodSummary: [],
+    prHighlights: [],
     summary: {
       totalSessions: 0,
       totalSets: 0,
@@ -64,8 +67,17 @@ Page({
   async load() {
     wx.showLoading({ title: '加载中' });
     try {
-      const [cloudStats, sessions] = await Promise.all([listExerciseStats(), listRecentSessions(100)]);
-      const stats = cloudStats.length > 0 ? cloudStats : await buildFallbackStats();
+      const app = getApp();
+      if (!app.globalData.userContext) {
+        const context = await getUserContext();
+        app.globalData.userContext = context;
+      }
+      const [cloudStats, sessions, sets] = await Promise.all([
+        listExerciseStats(),
+        listRecentSessions(100),
+        listWorkoutSets(500),
+      ]);
+      const stats = cloudStats.length > 0 ? cloudStats : await buildFallbackStats(sets);
       const mapped = stats.map((item) => Object.assign({}, item, {
         display_name: item.exercise_name || item.exercise_id,
         display_last_performed: dateText(item.last_performed_at) || '-',
@@ -78,7 +90,15 @@ Page({
         return acc;
       }, { totalSessions: sessions.length, totalSets: 0, totalReps: 0, totalVolume: 0 });
       summary.totalVolume = Math.round(summary.totalVolume);
-      this.setData({ stats: mapped, summary });
+      this.setData({
+        stats: mapped,
+        summary,
+        periodSummary: buildPeriodSummary(sessions, sets),
+        prHighlights: buildPrHighlights(mapped),
+      });
+    } catch (error) {
+      wx.showToast({ title: '档案加载失败', icon: 'none' });
+      console.error(error);
     } finally {
       wx.hideLoading();
     }

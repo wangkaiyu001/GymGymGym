@@ -1,4 +1,5 @@
 const {
+  getUserContext,
   getSessionBundle,
   getExerciseById,
   updateSession,
@@ -49,7 +50,13 @@ Page({
   async load(id) {
     wx.showLoading({ title: '加载中' });
     try {
+      const app = getApp();
+      if (!app.globalData.userContext) {
+        const context = await getUserContext();
+        app.globalData.userContext = context;
+      }
       const bundle = await getSessionBundle(id);
+      if (!bundle.session) throw new Error('Session not found or not owned by current user');
       const names = {};
       for (let i = 0; i < bundle.sets.length; i += 1) {
         const exerciseId = bundle.sets[i].exercise_id;

@@ -13,10 +13,12 @@ const required = [
   'miniprogram/pages/training/training.wxml',
   'miniprogram/pages/exercises/exercises.js',
   'miniprogram/pages/profile/profile.js',
+  'miniprogram/utils/profile-stats.js',
   'miniprogram/pages/goals/goals.js',
   'cloudfunctions/getUserContext/index.js',
   'cloudfunctions/recalculateStats/index.js',
   'database/security-rules.json',
+  'tests/profile-stats.test.js',
 ];
 
 let failed = false;

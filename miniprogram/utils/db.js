@@ -26,6 +26,18 @@ function withOwnership(data) {
   return Object.assign({}, data, { user_openid: openid });
 }
 
+function ownedWhere(db, conditions) {
+  const openid = currentOpenid();
+  if (!openid) return conditions;
+  const ownerCondition = {
+    _or: [
+      { _openid: openid },
+      { user_openid: openid },
+    ],
+  };
+  return conditions ? Object.assign({}, conditions, ownerCondition) : ownerCondition;
+}
+
 async function callFunction(name, data) {
   const result = await wx.cloud.callFunction({ name, data: data || {} });
   return result.result;
@@ -246,21 +258,23 @@ async function deleteSet(setId) {
 
 async function getSessionBundle(sessionId) {
   const db = database();
-  const [session, blocks, sets] = await Promise.all([
-    db.collection('workout_sessions').doc(sessionId).get(),
-    db.collection('workout_blocks').where({ session_id: sessionId }).orderBy('order', 'asc').get(),
-    db.collection('workout_sets').where({ session_id: sessionId }).orderBy('created_at', 'asc').get(),
+  const [sessionResult, blocks, sets] = await Promise.all([
+    db.collection('workout_sessions').where(ownedWhere(db, { _id: sessionId })).limit(1).get(),
+    db.collection('workout_blocks').where(ownedWhere(db, { session_id: sessionId })).orderBy('order', 'asc').get(),
+    db.collection('workout_sets').where(ownedWhere(db, { session_id: sessionId })).orderBy('created_at', 'asc').get(),
   ]);
   return {
-    session: session.data,
+    session: sessionResult.data && sessionResult.data[0],
     blocks: blocks.data,
     sets: sets.data,
   };
 }
 
 async function listRecentSessions(limit) {
-  const result = await database()
+  const db = database();
+  const result = await db
     .collection('workout_sessions')
+    .where(ownedWhere(db))
     .orderBy('date', 'desc')
     .limit(limit || 10)
     .get();
@@ -269,8 +283,10 @@ async function listRecentSessions(limit) {
 
 async function listExerciseStats() {
   try {
-    const result = await database()
+    const db = database();
+    const result = await db
       .collection('exercise_stats')
+      .where(ownedWhere(db))
       .orderBy('updated_at', 'desc')
       .limit(100)
       .get();
@@ -282,8 +298,10 @@ async function listExerciseStats() {
 
 async function listWorkoutSets(limit) {
   try {
-    const result = await database()
+    const db = database();
+    const result = await db
       .collection('workout_sets')
+      .where(ownedWhere(db))
       .orderBy('created_at', 'desc')
       .limit(limit || 500)
       .get();

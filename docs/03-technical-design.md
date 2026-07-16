@@ -216,12 +216,14 @@ CloudBase 安全规则见 `database/security-rules.json`。
 - 训练记录由小程序端直接写 CloudBase 数据库。
 - 用户身份通过 `getUserContext` 获取。
 - 个人档案优先读 `exercise_stats`，为空时小程序端基于最近 `workout_sets` 做轻量实时聚合，避免云函数未部署时完全无数据。
+- 个人档案会额外读取最近 100 条 `workout_sessions` 和最近 500 条 `workout_sets`，在小程序端计算近 7 天 / 近 30 天训练摘要，并按估算 1RM 或最大重量生成 PR 关注 Top 3；该能力不依赖新增云函数。
 - 完整动作库未导入时使用 `miniprogram/data/seed-exercises.js`。
 - 常用/收藏动作保存在 `users.favorite_exercise_ids`，动作库页负责增删收藏，训练动作选择器读取后展示“常用收藏”区并将收藏动作置顶。
 
 写入约定：
 
 - 小程序端直接新增训练数据时，CloudBase 会自动写入 `_openid`，同时在已获取用户上下文后显式写入 `user_openid`，安全规则兼容 `_openid == auth.openid` 与 `user_openid == auth.openid`。
+- 训练、训练块、训练组和动作统计列表查询会显式附加当前 OpenID 所有权条件；数据库安全规则仍是最终权限边界，客户端过滤作为纵深防护并避免两位用户互相看到列表数据。
 - 云函数重算统计时补充 `user_openid`，便于后续跨端或管理端迁移。
 - `users` 文档 ID 使用 OpenID；保存用户资料时需要保留已有 `created_at`、`role` 等字段。
 

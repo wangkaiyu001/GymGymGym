@@ -30,6 +30,7 @@ CloudBase 环境：
 - 收藏常用动作，并在训练记录时优先选择。
 - 按今天想练部位、场地器材、身体状态和突破/维稳策略推荐动作。
 - 生成个人动作档案。
+- 在档案页查看近 7 天 / 近 30 天训练摘要和 PR 关注 Top 3。
 - 保存用户目标和常用器材。
 - 从最近训练复制一份新的训练模板。
 - 按同目标、同场所或同目标+场所筛选最近训练，找到更适合复制的历史模板。
@@ -40,7 +41,7 @@ CloudBase 环境：
 
 ```text
 分支：main
-上一轮功能提交：393f05c Add contextual exercise recommendations
+最近稳定基线：以 `git log --oneline -5` 和 GitHub `main` 分支为准
 ```
 
 说明：如果本地后续又有新提交，请以 `git log --oneline -5` 和 GitHub 仓库页面为准。
@@ -131,12 +132,14 @@ hasaneyldrm/exercises-dataset
 9. 从最近训练筛选一条同类记录并复制一份，修改重量后再保存。
 10. 进入训练详情，编辑训练信息、编辑某一组、删除一组测试数据。
 11. 打开“档案”，点击“重算”，确认最大重量、总组数和容量更新。
-12. 两个人分别扫码测试，确认只能看到自己的训练和档案。
+12. 确认档案页近 7 天 / 近 30 天摘要正确，PR 关注最多展示 3 个动作。
+13. 两个人分别扫码测试，确认只能看到自己的训练和档案。
 
 ## 每次开发后建议同步
 
 ```bash
 npm run check
+npm test
 git diff --check
 git status --short
 git add README.md docs miniprogram cloudfunctions database scripts package.json cloudbaserc.json project.config.json sitemap.json

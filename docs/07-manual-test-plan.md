@@ -93,13 +93,16 @@ code-realtime-d7gbuxrbze297e600
 1. 打开“档案”。
 2. 点击“重算”。
 3. 确认训练次数、有效组数、总次数、总容量更新。
-4. 确认动作表现里显示最大重量和估算 1RM。
+4. 确认“近期训练摘要”显示近 7 天和近 30 天的训练次数、有效组数、总次数与容量。
+5. 确认“PR 关注”最多展示 3 个带重量动作，并按估算 1RM（无 1RM 时按最大重量）从高到低排列。
+6. 确认动作表现里显示最大重量和估算 1RM。
 
 通过标准：
 
 - `recalculateStats` 云函数执行成功。
 - `exercise_stats` 按当前 OpenID 写入统计。
 - 如果云函数暂不可用，页面仍可基于最近 `workout_sets` 做轻量 fallback 展示。
+- 近期摘要只统计对应时间窗口内的正式组，热身组不计入有效组、次数和容量。
 
 ## 7. 真机验收
 
@@ -114,5 +117,6 @@ code-realtime-d7gbuxrbze297e600
 
 ```bash
 npm run check
+npm test
 git diff --check
 ```

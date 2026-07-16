@@ -10,6 +10,17 @@
   color: #1d4ed8;
   border: 0;
 }
+.period-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18rpx; }
+.period-card { background: #f8fafc; border-radius: 22rpx; padding: 22rpx; }
+.period-label { font-size: 24rpx; color: #667085; }
+.period-main { margin-top: 8rpx; font-size: 34rpx; font-weight: 800; color: #101828; }
+.period-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10rpx; margin-top: 18rpx; color: #667085; font-size: 22rpx; }
+.period-grid text { display: block; color: #101828; font-size: 28rpx; font-weight: 800; margin-bottom: 4rpx; }
+.pr-row { display: flex; gap: 18rpx; padding: 20rpx 0; border-top: 1rpx solid #eaecf0; }
+.pr-row:first-of-type { border-top: 0; }
+.pr-rank { width: 46rpx; height: 46rpx; border-radius: 50%; background: #e8f0ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.pr-content { flex: 1; min-width: 0; }
+.pr-score { color: #2563eb; font-size: 26rpx; font-weight: 800; margin-left: 16rpx; white-space: nowrap; }
 .stat-row { padding: 22rpx 0; border-top: 1rpx solid #eaecf0; }
 .stat-name { font-size: 30rpx; font-weight: 800; }
 .stat-meta { color: #667085; font-size: 24rpx; margin-top: 6rpx; }
