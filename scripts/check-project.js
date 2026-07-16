@@ -22,6 +22,7 @@ const required = [
   'tests/profile-stats.test.js',
   'tests/training-reminders.test.js',
   'tests/security-boundaries.test.js',
+  'tests/workout-integrity.test.js',
 ];
 
 let failed = false;

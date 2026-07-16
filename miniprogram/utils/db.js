@@ -309,6 +309,7 @@ async function getSessionBundle(sessionId) {
 
 async function listRecentSessions(limit) {
   return listOwnedDocuments('workout_sessions', {
+    where: { status: 'completed' },
     orderBy: 'date',
     order: 'desc',
     limit: limit || 10,

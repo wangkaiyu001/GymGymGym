@@ -514,6 +514,13 @@ Page({
       wx.showToast({ title: '请先添加训练块', icon: 'none' });
       return;
     }
+    const hasValidSet = this.data.blocks.some((block) => block.sets.some((set) => (
+      (Number(set.weight_kg) || 0) > 0 || (Number(set.reps) || 0) > 0
+    )));
+    if (!hasValidSet) {
+      wx.showToast({ title: '请至少填写一组重量或次数', icon: 'none' });
+      return;
+    }
     this.setData({ isSaving: true });
     const sessionId = await this.ensureSession();
     if (!sessionId) {

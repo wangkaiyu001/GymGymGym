@@ -96,6 +96,8 @@ tcb fn list --env-id code-realtime-d7gbuxrbze297e600
 - `getUserContext`，运行时 `Nodejs18.15`
 - `recalculateStats`，运行时 `Nodejs18.15`
 
+2026-07-16 19:57 又部署了 `recalculateStats` 的完整训练过滤逻辑，并回读线上 `CodeInfo` 确认包含 `completedSessionIds` / `completedSets`，状态为 `Active`。
+
 说明：最近新增的“根据今天场景推荐动作”能力在小程序端完成，不依赖新增云函数；如果只是验证该功能，
 不需要重新部署云函数。
 

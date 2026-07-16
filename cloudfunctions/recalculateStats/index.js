@@ -38,8 +38,13 @@ exports.main = async () => {
     is_warmup: _.neq(true),
   }));
   const sessions = await getAll('workout_sessions', ownerCondition);
+  const completedSessionIds = sessions.reduce((acc, session) => {
+    if (session.status === 'completed') acc[session._id] = true;
+    return acc;
+  }, {});
+  const completedSets = sets.filter((set) => completedSessionIds[set.session_id]);
 
-  const exerciseIds = Array.from(new Set(sets.map((set) => set.exercise_id).filter(Boolean)));
+  const exerciseIds = Array.from(new Set(completedSets.map((set) => set.exercise_id).filter(Boolean)));
   const exerciseNames = {};
   for (let i = 0; i < exerciseIds.length; i += 1) {
     const exerciseId = exerciseIds[i];
@@ -52,11 +57,12 @@ exports.main = async () => {
   }
 
   const sessionDate = sessions.reduce((acc, session) => {
+    if (session.status !== 'completed') return acc;
     acc[session._id] = session.ended_at || session.date || session.updated_at || session.created_at;
     return acc;
   }, {});
 
-  const grouped = sets.reduce((acc, set) => {
+  const grouped = completedSets.reduce((acc, set) => {
     if (!set.exercise_id) return acc;
     if (!acc[set.exercise_id]) {
       acc[set.exercise_id] = {
@@ -125,7 +131,7 @@ exports.main = async () => {
   return {
     ok: true,
     openid: OPENID,
-    set_count: sets.length,
+    set_count: completedSets.length,
     stat_count: stats.length,
   };
 };
