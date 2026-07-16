@@ -5,7 +5,7 @@
   "description": "Private WeChat Mini Program for workout logging and personal strength profile.",
   "scripts": {
     "check": "node scripts/check-project.js",
-    "test": "node tests/profile-stats.test.js && node tests/training-reminders.test.js",
+    "test": "node tests/profile-stats.test.js && node tests/training-reminders.test.js && node tests/security-boundaries.test.js",
     "normalize:exercises": "node scripts/normalize-exercises.js",
     "import:exercises": "node scripts/import-exercises.js",
     "setup:db": "node scripts/setup-cloudbase-db.js"

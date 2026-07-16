@@ -114,6 +114,12 @@ user_goals
 database/security-rules.json
 ```
 
+当前规则要点：
+
+- `workout_sessions`、`workout_blocks`、`workout_sets`、`user_goals` 只允许 `_openid == auth.openid` 的用户写入。
+- `exercise_stats` 禁止小程序客户端写入，由 `recalculateStats` 云函数维护。
+- 不要把写规则改回包含 `!doc._openid` 的宽松形式，否则新文档所有权约束可能被绕过。
+
 可用脚本通过 upsert 系统 marker 文档的方式懒创建集合。脚本不会删除或覆盖训练数据；默认是 dry-run：
 
 ```bash

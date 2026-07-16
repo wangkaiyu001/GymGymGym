@@ -22,13 +22,17 @@ function currentOpenid() {
 
 function withOwnership(data) {
   const openid = currentOpenid();
-  if (!openid || data.user_openid) return data;
+  if (!openid) throw new Error('Missing authenticated user context');
+  if (data.user_openid && data.user_openid !== openid) {
+    throw new Error('Cannot write data for another user');
+  }
+  if (data.user_openid) return data;
   return Object.assign({}, data, { user_openid: openid });
 }
 
 function ownedWhere(db, conditions) {
   const openid = currentOpenid();
-  if (!openid) return conditions;
+  if (!openid) throw new Error('Missing authenticated user context');
   const ownerCondition = {
     _or: [
       { _openid: openid },
@@ -36,6 +40,28 @@ function ownedWhere(db, conditions) {
     ],
   };
   return conditions ? Object.assign({}, conditions, ownerCondition) : ownerCondition;
+}
+
+function ownedDocumentQuery(collectionName, documentId) {
+  if (!documentId) throw new Error('Missing document id');
+  const db = database();
+  return db.collection(collectionName).where(ownedWhere(db, { _id: documentId }));
+}
+
+async function updateOwnedDocument(collectionName, documentId, patch) {
+  const result = await ownedDocumentQuery(collectionName, documentId).update({ data: patch });
+  if (!result || Number(result.stats && result.stats.updated) < 1) {
+    throw new Error(`${collectionName} document not found or not owned by current user`);
+  }
+  return result;
+}
+
+async function deleteOwnedDocument(collectionName, documentId) {
+  const result = await ownedDocumentQuery(collectionName, documentId).remove();
+  if (!result || Number(result.stats && result.stats.removed) < 1) {
+    throw new Error(`${collectionName} document not found or not owned by current user`);
+  }
+  return result;
 }
 
 async function listOwnedDocuments(collectionName, options) {
@@ -228,9 +254,7 @@ async function createSession(payload) {
 }
 
 async function updateSession(sessionId, patch) {
-  return database().collection('workout_sessions').doc(sessionId).update({
-    data: Object.assign({}, patch, { updated_at: now() }),
-  });
+  return updateOwnedDocument('workout_sessions', sessionId, Object.assign({}, patch, { updated_at: now() }));
 }
 
 async function addBlock(payload) {
@@ -242,13 +266,11 @@ async function addBlock(payload) {
 }
 
 async function updateBlock(blockId, patch) {
-  return database().collection('workout_blocks').doc(blockId).update({
-    data: Object.assign({}, patch, { updated_at: now() }),
-  });
+  return updateOwnedDocument('workout_blocks', blockId, Object.assign({}, patch, { updated_at: now() }));
 }
 
 async function deleteBlock(blockId) {
-  return database().collection('workout_blocks').doc(blockId).remove();
+  return deleteOwnedDocument('workout_blocks', blockId);
 }
 
 async function addSet(payload) {
@@ -264,13 +286,11 @@ async function updateSet(setId, patch) {
   const metrics = Object.prototype.hasOwnProperty.call(patch, 'weight_kg') || Object.prototype.hasOwnProperty.call(patch, 'reps')
     ? calcSetMetrics(patch.weight_kg, patch.reps)
     : {};
-  return database().collection('workout_sets').doc(setId).update({
-    data: Object.assign({}, patch, metrics, { updated_at: now() }),
-  });
+  return updateOwnedDocument('workout_sets', setId, Object.assign({}, patch, metrics, { updated_at: now() }));
 }
 
 async function deleteSet(setId) {
-  return database().collection('workout_sets').doc(setId).remove();
+  return deleteOwnedDocument('workout_sets', setId);
 }
 
 async function getSessionBundle(sessionId) {
@@ -348,16 +368,18 @@ async function addUserGoal(payload) {
 }
 
 async function updateUserGoal(goalId, patch) {
-  return database().collection('user_goals').doc(goalId).update({
-    data: Object.assign({}, patch, { updated_at: now() }),
-  });
+  return updateOwnedDocument('user_goals', goalId, Object.assign({}, patch, { updated_at: now() }));
 }
 
 async function deleteUserGoal(goalId) {
-  return database().collection('user_goals').doc(goalId).remove();
+  return deleteOwnedDocument('user_goals', goalId);
 }
 
 async function saveUserProfile(openid, data) {
+  const authenticatedOpenid = currentOpenid();
+  if (!authenticatedOpenid || openid !== authenticatedOpenid) {
+    throw new Error('Cannot save another user profile');
+  }
   const time = now();
   let existing = {};
   try {

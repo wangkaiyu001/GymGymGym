@@ -21,6 +21,7 @@ const required = [
   'database/security-rules.json',
   'tests/profile-stats.test.js',
   'tests/training-reminders.test.js',
+  'tests/security-boundaries.test.js',
 ];
 
 let failed = false;
