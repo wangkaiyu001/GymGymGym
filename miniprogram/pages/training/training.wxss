@@ -16,6 +16,14 @@
 }
 .small-btn.ghost { background: #f2f4f7; color: #344054; }
 .small-btn.danger { background: #fff1f3; color: #c01048; }
+.reminder-card .section-title { margin-bottom: 6rpx; }
+.reminder-desc { color: #667085; font-size: 23rpx; margin-bottom: 18rpx; }
+.reminder-list { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.reminder-item { min-width: 180rpx; flex: 1; border-radius: 20rpx; padding: 18rpx; background: #ecfdf3; color: #027a48; }
+.reminder-item.recent { background: #fff7ed; color: #c2410c; }
+.reminder-item.today { background: #fff1f3; color: #c01048; }
+.reminder-part { font-size: 27rpx; font-weight: 800; }
+.reminder-hint { margin-top: 6rpx; font-size: 22rpx; }
 .recommend-box {
   margin-top: 22rpx;
   padding: 20rpx;

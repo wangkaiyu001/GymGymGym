@@ -4,6 +4,18 @@
     <view class="subtitle">快速记录普通组、超级组和当天训练场景</view>
   </view>
 
+  <view class="card reminder-card">
+    <view class="section-title">部位训练间隔</view>
+    <view class="reminder-desc">根据最近训练里记录的目标部位，帮助判断今天适合练哪里。</view>
+    <empty-state wx:if="{{bodyPartReminders.length === 0}}" title="暂无部位历史" desc="完成训练并记录想练部位后，这里会显示间隔天数" />
+    <view class="reminder-list">
+      <view wx:for="{{bodyPartReminders}}" wx:key="part" class="reminder-item {{item.state}}">
+        <view class="reminder-part">{{item.part}}</view>
+        <view class="reminder-hint">{{item.hint}}</view>
+      </view>
+    </view>
+  </view>
+
   <view class="card">
     <view class="section-title">训练场景</view>
     <view class="field">

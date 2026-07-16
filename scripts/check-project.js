@@ -14,11 +14,13 @@ const required = [
   'miniprogram/pages/exercises/exercises.js',
   'miniprogram/pages/profile/profile.js',
   'miniprogram/utils/profile-stats.js',
+  'miniprogram/utils/training-reminders.js',
   'miniprogram/pages/goals/goals.js',
   'cloudfunctions/getUserContext/index.js',
   'cloudfunctions/recalculateStats/index.js',
   'database/security-rules.json',
   'tests/profile-stats.test.js',
+  'tests/training-reminders.test.js',
 ];
 
 let failed = false;

@@ -7,6 +7,7 @@ const {
   INTENT_OPTIONS,
 } = require('../../utils/constants');
 const { formatDate, toNumber } = require('../../utils/format');
+const { buildBodyPartReminders } = require('../../utils/training-reminders');
 const {
   getUserContext,
   createSession,
@@ -174,6 +175,7 @@ Page({
     supersetTargetSize: SUPERSET_SIZE_OPTIONS[0],
     favoriteExerciseIds: [],
     recommendedExercises: [],
+    bodyPartReminders: [],
     form: {
       title: '今日训练',
       date: formatDate(),
@@ -257,7 +259,10 @@ Page({
       const app = getApp();
       if (!app.globalData.userContext) return;
       const recentSessions = await listRecentSessions(20);
-      this.setData({ recentSessionsAll: recentSessions }, () => this.applyRecentSessionFilter());
+      this.setData({
+        recentSessionsAll: recentSessions,
+        bodyPartReminders: buildBodyPartReminders(recentSessions),
+      }, () => this.applyRecentSessionFilter());
     } catch (error) {
       console.warn('读取最近训练失败', error);
     }
