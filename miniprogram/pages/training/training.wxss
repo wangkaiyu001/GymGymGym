@@ -14,6 +14,26 @@
 }
 .small-btn.ghost { background: #f2f4f7; color: #344054; }
 .small-btn.danger { background: #fff1f3; color: #c01048; }
+.recommend-box {
+  margin-top: 22rpx;
+  padding: 20rpx;
+  border-radius: 22rpx;
+  background: #f8fafc;
+  border: 1rpx solid #e2e8f0;
+}
+.recommend-title { font-size: 28rpx; font-weight: 800; color: #101828; }
+.recommend-desc { margin-top: 6rpx; color: #667085; font-size: 22rpx; }
+.recommend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-top: 1rpx solid #eaecf0;
+}
+.recommend-name { font-size: 28rpx; font-weight: 800; }
+.recommend-meta { margin-top: 6rpx; color: #475467; font-size: 23rpx; }
+.recommend-reason { margin-top: 6rpx; color: #1d4ed8; font-size: 22rpx; }
 .block {
   padding: 22rpx 0;
   border-top: 1rpx solid #eaecf0;

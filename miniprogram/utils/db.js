@@ -95,6 +95,70 @@ async function listExercisesByIds(ids) {
   return seedExercises.filter((item) => uniqueIds.indexOf(item._id) >= 0 || uniqueIds.indexOf(item.source_id) >= 0);
 }
 
+async function listRecommendedExercises(context) {
+  const query = context || {};
+  const bodyParts = query.focus_body_parts || [];
+  const equipmentList = query.available_equipment || [];
+  const preferredIds = query.preferred_ids || [];
+  const limit = query.limit || 8;
+  const hasBodyFilter = bodyParts.length > 0;
+  const hasEquipmentFilter = equipmentList.length > 0;
+
+  function scoreExercise(item) {
+    let score = 0;
+    const bodyPart = item.body_part_zh || '';
+    const equipment = item.equipment_zh || '';
+    const target = `${item.target || ''} ${item.target_zh || ''} ${(item.muscle_group || []).join(' ')}`.toLowerCase();
+
+    if (preferredIds.indexOf(item._id) >= 0 || preferredIds.indexOf(item.source_id) >= 0) score += 40;
+    if (item.is_common) score += 8;
+    if (!hasBodyFilter || bodyParts.some((part) => bodyPart.indexOf(part) >= 0 || target.indexOf(part.toLowerCase()) >= 0)) score += 30;
+    if (!hasEquipmentFilter || equipmentList.some((equipmentName) => equipment.indexOf(equipmentName) >= 0)) score += 20;
+    if (query.training_intent === 'breakthrough' && item.difficulty !== 'beginner') score += 6;
+    if ((query.training_intent === 'deload' || query.energy_level === 'low') && item.difficulty !== 'advanced') score += 6;
+    if (query.training_intent === 'technique' && item.difficulty !== 'advanced') score += 4;
+    return score;
+  }
+
+  function filterAndRank(items) {
+    return items
+      .map((item) => Object.assign({}, item, { recommend_score: scoreExercise(item) }))
+      .filter((item) => item.recommend_score >= 20)
+      .sort((a, b) => b.recommend_score - a.recommend_score)
+      .slice(0, limit);
+  }
+
+  try {
+    const db = database();
+    const _ = db.command;
+    const conditions = [];
+    if (hasBodyFilter) {
+      conditions.push(_.or(bodyParts.map((part) => ({
+        body_part_zh: db.RegExp({ regexp: part, options: 'i' }),
+      }))));
+    }
+    if (hasEquipmentFilter) {
+      conditions.push(_.or(equipmentList.map((equipmentName) => ({
+        equipment_zh: db.RegExp({ regexp: equipmentName, options: 'i' }),
+      }))));
+    }
+    const result = conditions.length > 0
+      ? await db.collection('exercises').where(_.and(conditions)).limit(80).get()
+      : await db.collection('exercises').limit(80).get();
+    const favoriteItems = preferredIds.length > 0 ? await listExercisesByIds(preferredIds) : [];
+    const itemMap = {};
+    (result.data || []).concat(favoriteItems).forEach((item) => {
+      if (item && item._id) itemMap[item._id] = item;
+    });
+    const ranked = filterAndRank(Object.keys(itemMap).map((id) => itemMap[id]));
+    if (ranked.length > 0) return ranked;
+  } catch (error) {
+    console.warn('读取推荐动作失败，使用内置动作兜底', error);
+  }
+
+  return filterAndRank(seedExercises);
+}
+
 async function getFavoriteExerciseIds(openid) {
   if (!openid) return [];
   try {
@@ -253,6 +317,7 @@ module.exports = {
   getUserContext,
   listExercises,
   listExercisesByIds,
+  listRecommendedExercises,
   getFavoriteExerciseIds,
   saveFavoriteExerciseIds,
   getExerciseById,

@@ -58,6 +58,24 @@
         <view wx:for="{{equipmentOptions}}" wx:key="value" class="chip {{item.selected ? 'active' : ''}}" data-value="{{item.value}}" bindtap="toggleEquipment">{{item.label}}</view>
       </view>
     </view>
+    <view class="recommend-box">
+      <view class="row between">
+        <view>
+          <view class="recommend-title">根据今天场景推荐</view>
+          <view class="recommend-desc">结合想练部位、器材、状态和突破/维稳策略</view>
+        </view>
+        <button class="small-btn ghost" bindtap="loadRecommendations">刷新</button>
+      </view>
+      <empty-state wx:if="{{recommendedExercises.length === 0}}" title="暂无推荐" desc="先选择想练部位或可用器材" />
+      <view wx:for="{{recommendedExercises}}" wx:key="_id" class="recommend-item">
+        <view>
+          <view class="recommend-name">{{item.display_name}}</view>
+          <view class="recommend-meta">{{item.display_body_part}} · {{item.display_equipment}}</view>
+          <view class="recommend-reason">{{item.reason_text}}</view>
+        </view>
+        <button class="small-btn" data-id="{{item._id}}" catchtap="addRecommendedExercise">加入</button>
+      </view>
+    </view>
     <view class="field">
       <view class="label">备注</view>
       <textarea class="textarea" value="{{form.note}}" data-key="note" bindinput="onFormInput" placeholder="今天状态、时间限制、突破/维稳想法" />

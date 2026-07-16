@@ -16,6 +16,8 @@ const {
   listRecentSessions,
   getSessionBundle,
   getExerciseById,
+  getFavoriteExerciseIds,
+  listRecommendedExercises,
 } = require('../../utils/db');
 
 function indexOfValue(options, value) {
@@ -42,6 +44,25 @@ function buildIntent(form) {
     time_limit_min: timeLimit ? toNumber(timeLimit, null) : null,
     note: form.note,
   };
+}
+
+function mapRecommendationForView(item, form, favoriteIds) {
+  const reasons = [];
+  const bodyPart = item.body_part_zh || '';
+  const equipment = item.equipment_zh || '';
+  if (favoriteIds.indexOf(item._id) >= 0 || favoriteIds.indexOf(item.source_id) >= 0) reasons.push('常用');
+  if ((form.focus_body_parts || []).some((part) => bodyPart.indexOf(part) >= 0)) reasons.push(bodyPart);
+  if ((form.available_equipment || []).some((name) => equipment.indexOf(name) >= 0)) reasons.push(equipment);
+  if (form.training_intent === 'breakthrough') reasons.push('适合突破');
+  if (form.training_intent === 'maintain') reasons.push('维稳');
+  if (form.training_intent === 'deload') reasons.push('减量');
+  if (form.training_intent === 'technique') reasons.push('技术打磨');
+  return Object.assign({}, item, {
+    display_name: item.name_zh || item.name,
+    display_body_part: bodyPart || item.body_part,
+    display_equipment: equipment || item.equipment,
+    reason_text: reasons.slice(0, 3).join(' · ') || '根据当前场景推荐',
+  });
 }
 
 function mapBlocksForView(blocks) {
@@ -100,6 +121,8 @@ Page({
     pickerVisible: false,
     pendingBlockType: 'single',
     pendingExercises: [],
+    favoriteExerciseIds: [],
+    recommendedExercises: [],
     form: {
       title: '今日训练',
       date: formatDate(),
@@ -141,7 +164,8 @@ Page({
       const context = await getUserContext();
       getApp().globalData.userContext = context;
       const user = context.user || {};
-      const patch = { user };
+      const favoriteExerciseIds = await getFavoriteExerciseIds(context.openid);
+      const patch = { user, favoriteExerciseIds };
       if (user.default_goal) {
         patch['form.goal_type'] = user.default_goal;
         patch.goalIndex = indexOfValue(GOAL_OPTIONS, user.default_goal);
@@ -155,11 +179,26 @@ Page({
         patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, user.available_equipment_home);
       }
       this.setData(patch);
+      this.loadRecommendations();
     } catch (error) {
       wx.showToast({ title: '云函数未部署', icon: 'none' });
       console.error(error);
     }
     this.loadRecentSessions();
+  },
+
+  async loadRecommendations() {
+    try {
+      const items = await listRecommendedExercises(Object.assign({}, buildIntent(this.data.form), {
+        preferred_ids: this.data.favoriteExerciseIds,
+        limit: 8,
+      }));
+      this.setData({
+        recommendedExercises: items.map((item) => mapRecommendationForView(item, this.data.form, this.data.favoriteExerciseIds)),
+      });
+    } catch (error) {
+      console.warn('生成推荐动作失败', error);
+    }
   },
 
   async loadRecentSessions() {
@@ -198,6 +237,7 @@ Page({
       intentIndex: index,
       'form.training_intent': INTENT_OPTIONS[index].value,
     });
+    this.loadRecommendations();
   },
 
   onEnergyChange(event) {
@@ -206,6 +246,7 @@ Page({
       energyIndex: index,
       'form.energy_level': ENERGY_OPTIONS[index].value,
     });
+    this.loadRecommendations();
   },
 
   toggleListValue(listKey, value) {
@@ -215,6 +256,7 @@ Page({
     if (listKey === 'focus_body_parts') patch.bodyPartOptions = mapSelectableOptions(BODY_PART_OPTIONS, next);
     if (listKey === 'available_equipment') patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, next);
     this.setData(patch);
+    this.loadRecommendations();
   },
 
   toggleBodyPart(event) {
@@ -305,6 +347,15 @@ Page({
       pickerVisible: false,
       pendingExercises: [],
     });
+  },
+
+  addRecommendedExercise(event) {
+    const id = event.currentTarget.dataset.id;
+    const exercise = this.data.recommendedExercises.find((item) => item._id === id);
+    if (!exercise) return;
+    this.setData({ pendingBlockType: 'single', pendingExercises: [] });
+    this.createLocalBlock([exercise]);
+    wx.showToast({ title: '已加入训练块', icon: 'success' });
   },
 
   deleteBlock(event) {
