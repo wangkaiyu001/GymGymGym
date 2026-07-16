@@ -202,3 +202,11 @@ npm run upload:miniprogram
 密钥路径只通过环境变量传入，不写入源码和 Git 历史。
 
 首次上传如果返回 `invalid ip`，需要在微信公众平台的小程序开发设置中，把命令输出的当前公网 IP 加入“代码上传 IP 白名单”后重试。2026-07-16 本机首次尝试识别到的公网 IP 为 `116.6.206.132`。
+
+2026-07-16 23:19（Asia/Shanghai）已通过微信官方 `miniprogram-ci` 成功上传：
+
+- AppID：`wxe5658bb09f7c33f9`
+- 版本：`0.1.0`
+- 描述：`GymGymGym MVP 2026-07-16`
+- 完整包大小：127,841 bytes
+- 上传结果：`Mini Program upload completed`

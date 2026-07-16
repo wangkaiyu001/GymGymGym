@@ -155,6 +155,7 @@ tcb env use code-realtime-d7gbuxrbze297e600
 - 2026-07-16 已通过 CloudBase MCP 将 `getUserContext` 和 `recalculateStats` 当前代码部署到线上并确认 `Active`。
 - 7 个数据库集合均已存在，线上安全规则已更新为仓库中的 `CUSTOM` 最小权限规则并回读验证。
 - 当前仓库与 `origin/main` 同步，本地结构检查、统计/提醒/权限测试以及脚本 dry-run 均已通过。
+- 微信小程序 `0.1.0` 已于 2026-07-16 23:19 通过官方 `miniprogram-ci` 上传成功。
 - 微信小程序 AppID 已配置为 `wxe5658bb09f7c33f9`；上传私钥保留在仓库外，不会提交 GitHub。
 
 ## 文档

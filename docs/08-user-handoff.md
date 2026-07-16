@@ -178,7 +178,9 @@ git push origin main
 /Users/bytedance/Documents/GymGymGym
 ```
 
-也可以使用 `npm run upload:miniprogram` 自动上传。当前唯一上传阻塞是微信公众平台 CI IP 白名单：请把 `116.6.206.132` 加入小程序“代码上传 IP 白名单”，公网 IP 变化时以命令报错中的地址为准。
+也可以使用 `npm run upload:miniprogram` 自动上传。当前公网 IP `116.6.206.132` 已加入白名单；公网 IP 变化时，以 CI 报错中的新地址更新小程序“代码上传 IP 白名单”。
+
+2026-07-16 23:19 已成功上传微信小程序代码版本 `0.1.0`（描述：`GymGymGym MVP 2026-07-16`）。后续可在微信公众平台将该版本设为体验版，或提交审核。
 
 3. 确认小程序绑定 CloudBase 环境：
 
