@@ -105,6 +105,7 @@ code-realtime-d7gbuxrbze297e600
 6. 确认动作表现里显示最大重量和估算 1RM。
 7. 点击“导出 JSON 备份”，确认生成 `GymGymGym-backup-日期.json` 并出现微信文件分享面板。
 8. 打开导出的 JSON，确认包含 `workout_sessions`、`workout_blocks`、`workout_sets`、`exercise_stats` 和 `user_goals`。
+9. 若账号存在草稿训练，确认备份中同时包含该 draft session 及对应 block/set，但档案统计不包含草稿数据。
 
 通过标准：
 

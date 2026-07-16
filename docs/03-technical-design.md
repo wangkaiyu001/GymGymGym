@@ -247,6 +247,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 
 - “训练”页最近训练支持复制，复制的是训练块结构和每组上次填写值；保存时会创建新的 session/block/set，不会修改旧训练。
 - “最近训练”和档案只读取 `status == completed` 的 session；草稿训练不会进入复制来源、训练次数或动作统计。
+- 档案 fallback 先用 completed session ID 过滤 `workout_sets`；JSON 备份则完整导出 completed 与 draft session 及其 block/set，避免孤立明细。
 - 保存完成前至少要求一组存在重量或次数，避免空训练污染历史和档案。
 - “训练”页会拉取最近 20 条训练作为本地候选，再按当前表单的 `goal_type`、`location` 做“同目标 / 同场所 / 同目标+场所”前端筛选，并展示前 5 条用于复制或查看详情。
 - “训练详情”页支持编辑已保存训练的标题、日期、场所、目标和备注。

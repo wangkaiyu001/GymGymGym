@@ -1,6 +1,7 @@
 const {
   getExerciseById,
   getUserContext,
+  listAllSessions,
   listExerciseStats,
   listRecentSessions,
   listUserGoals,
@@ -80,7 +81,12 @@ Page({
         listRecentSessions(100),
         listWorkoutSets(500),
       ]);
-      const stats = cloudStats.length > 0 ? cloudStats : await buildFallbackStats(sets);
+      const completedSessionIds = sessions.reduce((acc, session) => {
+        acc[session._id] = true;
+        return acc;
+      }, {});
+      const completedSets = sets.filter((set) => completedSessionIds[set.session_id]);
+      const stats = cloudStats.length > 0 ? cloudStats : await buildFallbackStats(completedSets);
       const mapped = stats.map((item) => Object.assign({}, item, {
         display_name: item.exercise_name || item.exercise_id,
         display_last_performed: dateText(item.last_performed_at) || '-',
@@ -96,7 +102,7 @@ Page({
       this.setData({
         stats: mapped,
         summary,
-        periodSummary: buildPeriodSummary(sessions, sets),
+        periodSummary: buildPeriodSummary(sessions, completedSets),
         prHighlights: buildPrHighlights(mapped),
       });
     } catch (error) {
@@ -132,7 +138,7 @@ Page({
         app.globalData.userContext = context;
       }
       const [sessions, blocks, sets, stats, goals] = await Promise.all([
-        listRecentSessions(1000),
+        listAllSessions(1000),
         listWorkoutBlocks(1000),
         listWorkoutSets(1000),
         listExerciseStats(),

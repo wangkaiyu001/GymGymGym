@@ -316,6 +316,14 @@ async function listRecentSessions(limit) {
   });
 }
 
+async function listAllSessions(limit) {
+  return listOwnedDocuments('workout_sessions', {
+    orderBy: 'date',
+    order: 'desc',
+    limit: limit || 1000,
+  });
+}
+
 async function listExerciseStats() {
   try {
     return await listOwnedDocuments('exercise_stats', {
@@ -418,6 +426,7 @@ module.exports = {
   deleteSet,
   getSessionBundle,
   listRecentSessions,
+  listAllSessions,
   listExerciseStats,
   listWorkoutSets,
   listWorkoutBlocks,
