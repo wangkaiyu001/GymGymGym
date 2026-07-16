@@ -328,6 +328,16 @@ async function listAllSessions(limit) {
   });
 }
 
+async function getLatestDraftSession() {
+  const sessions = await listOwnedDocuments('workout_sessions', {
+    where: { status: 'draft' },
+    orderBy: 'updated_at',
+    order: 'desc',
+    limit: 1,
+  });
+  return sessions[0] || null;
+}
+
 async function listExerciseStats() {
   try {
     return await listOwnedDocuments('exercise_stats', {
@@ -432,6 +442,7 @@ module.exports = {
   getSessionBundle,
   listRecentSessions,
   listAllSessions,
+  getLatestDraftSession,
   listExerciseStats,
   listWorkoutSets,
   listWorkoutBlocks,

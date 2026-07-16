@@ -14,8 +14,10 @@ const {
   updateSession,
   deleteSession: removeWorkoutSession,
   addBlock,
+  updateBlock,
   addSet,
   listRecentSessions,
+  getLatestDraftSession,
   getSessionBundle,
   getExerciseById,
   getFavoriteExerciseIds,
@@ -233,12 +235,71 @@ Page({
         patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, user.available_equipment_home);
       }
       this.setData(patch);
+      await this.restoreLatestDraft();
       this.loadRecommendations();
     } catch (error) {
       wx.showToast({ title: '云函数未部署', icon: 'none' });
       console.error(error);
     }
     this.loadRecentSessions();
+  },
+
+  async restoreLatestDraft() {
+    if (this.data.sessionId || this.data.blocks.length > 0) return;
+    try {
+      const draft = await getLatestDraftSession();
+      if (!draft) return;
+      const bundle = await getSessionBundle(draft._id);
+      const nameMap = {};
+      for (let i = 0; i < bundle.sets.length; i += 1) {
+        const exerciseId = bundle.sets[i].exercise_id;
+        if (!nameMap[exerciseId]) nameMap[exerciseId] = await getExerciseName(exerciseId);
+      }
+      const blocks = bundle.blocks.map((block, blockIndex) => {
+        const sets = bundle.sets
+          .filter((set) => set.block_id === block._id)
+          .map((set, setIndex) => Object.assign(
+            makeCopiedSet(set, nameMap[set.exercise_id] || set.exercise_id, setIndex),
+            { remote_id: set._id },
+          ));
+        const exerciseIds = block.exercise_ids || Array.from(new Set(sets.map((set) => set.exercise_id)));
+        return {
+          local_id: `draft-block-${block._id}`,
+          remote_id: block._id,
+          order: block.order || blockIndex + 1,
+          block_index: blockIndex,
+          type: block.type || 'single',
+          title: block.title || exerciseIds.map((id) => nameMap[id] || id).join(' + '),
+          exercises: exerciseIds.map((id) => ({ _id: id, name: nameMap[id] || id, name_zh: nameMap[id] || id })),
+          sets,
+        };
+      });
+      const intent = draft.intent || {};
+      this.setData({
+        sessionId: draft._id,
+        startDisabled: true,
+        blocks: mapBlocksForView(blocks),
+        'form.title': draft.title || '今日训练',
+        'form.date': draft.date || formatDate(),
+        'form.location': draft.location || this.data.form.location,
+        'form.goal_type': draft.goal_type || this.data.form.goal_type,
+        'form.training_intent': intent.training_intent || this.data.form.training_intent,
+        'form.energy_level': intent.energy_level || this.data.form.energy_level,
+        'form.time_limit_min': intent.time_limit_min === null || intent.time_limit_min === undefined ? '' : String(intent.time_limit_min),
+        'form.focus_body_parts': intent.focus_body_parts || [],
+        'form.available_equipment': intent.available_equipment || [],
+        'form.note': draft.notes || intent.note || '',
+        locationIndex: indexOfValue(LOCATION_OPTIONS, draft.location),
+        goalIndex: indexOfValue(GOAL_OPTIONS, draft.goal_type),
+        intentIndex: indexOfValue(INTENT_OPTIONS, intent.training_intent),
+        energyIndex: indexOfValue(ENERGY_OPTIONS, intent.energy_level),
+        bodyPartOptions: mapSelectableOptions(BODY_PART_OPTIONS, intent.focus_body_parts || []),
+        equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, intent.available_equipment || []),
+      });
+      wx.showToast({ title: '已恢复上次草稿', icon: 'none' });
+    } catch (error) {
+      console.warn('恢复训练草稿失败', error);
+    }
   },
 
   async loadRecommendations() {
@@ -542,6 +603,7 @@ Page({
       const blocks = this.data.blocks.slice();
       for (let i = 0; i < blocks.length; i += 1) {
         const block = blocks[i];
+        const hasUnsavedSet = block.sets.some((set) => !set.remote_id);
         let blockId = block.remote_id;
         if (!blockId) {
           blockId = await addBlock({
@@ -580,6 +642,12 @@ Page({
           block.sets[j] = set;
           blocks[i] = block;
           this.setData({ blocks: mapBlocksForView(blocks) });
+        }
+        if (blockId && hasUnsavedSet) {
+          await updateBlock(blockId, {
+            title: block.title,
+            exercise_ids: block.exercises.map((item) => item._id),
+          });
         }
       }
       await updateSession(sessionId, {
