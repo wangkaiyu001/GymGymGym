@@ -19,6 +19,7 @@ const required = [
   'cloudfunctions/getUserContext/index.js',
   'cloudfunctions/recalculateStats/index.js',
   'database/security-rules.json',
+  'scripts/upload-miniprogram.js',
   'tests/profile-stats.test.js',
   'tests/training-reminders.test.js',
   'tests/security-boundaries.test.js',
@@ -35,6 +36,11 @@ for (const file of required) {
 }
 
 const appJson = JSON.parse(fs.readFileSync(path.join(root, 'miniprogram/app.json'), 'utf8'));
+const projectConfig = readJson('project.config.json');
+if (!/^wx[0-9a-f]{16}$/.test(projectConfig.appid || '')) {
+  console.error('project.config.json must contain a real 18-character WeChat Mini Program AppID.');
+  failed = true;
+}
 for (const page of appJson.pages || []) {
   for (const ext of ['js', 'wxml', 'wxss', 'json']) {
     const file = path.join(root, 'miniprogram', `${page}.${ext}`);

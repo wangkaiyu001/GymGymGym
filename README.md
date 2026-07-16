@@ -78,7 +78,7 @@
 
 1. 安装微信开发者工具。
 2. 使用微信开发者工具打开本仓库根目录。
-3. 将 `project.config.json` 里的 `appid` 替换成你的小程序 AppID。
+3. 项目已配置微信小程序 AppID `wxe5658bb09f7c33f9`。
 4. 确保 CloudBase 环境为：
 
 ```text
@@ -127,6 +127,19 @@ git diff --check
 
 `npm run check` 会检查小程序页面文件、云函数文件和 JSON 配置是否齐全；`npm test` 会验证档案时间窗口、部位提醒以及数据权限边界。
 
+## 上传微信小程序代码
+
+项目使用微信官方 `miniprogram-ci` 上传，私钥必须保留在仓库外：
+
+```bash
+MINIPROGRAM_PRIVATE_KEY_PATH=/absolute/path/private.<appid>.key \
+MINIPROGRAM_VERSION=0.1.0 \
+MINIPROGRAM_DESC="GymGymGym MVP" \
+npm run upload:miniprogram
+```
+
+不要把上传私钥复制到项目目录或提交 GitHub。
+
 ## 当前部署备注
 
 - CloudBase CLI 已安装并识别为 `3.5.0`。
@@ -142,7 +155,7 @@ tcb env use code-realtime-d7gbuxrbze297e600
 - 2026-07-16 已通过 CloudBase MCP 将 `getUserContext` 和 `recalculateStats` 当前代码部署到线上并确认 `Active`。
 - 7 个数据库集合均已存在，线上安全规则已更新为仓库中的 `CUSTOM` 最小权限规则并回读验证。
 - 当前仓库与 `origin/main` 同步，本地结构检查、统计/提醒/权限测试以及脚本 dry-run 均已通过。
-- 微信小程序 AppID 仍需用户本人把 `project.config.json` 中的 `touristappid` 替换为真实 AppID。
+- 微信小程序 AppID 已配置为 `wxe5658bb09f7c33f9`；上传私钥保留在仓库外，不会提交 GitHub。
 
 ## 文档
 

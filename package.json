@@ -6,6 +6,7 @@
   "scripts": {
     "check": "node scripts/check-project.js",
     "test": "node tests/profile-stats.test.js && node tests/training-reminders.test.js && node tests/security-boundaries.test.js && node tests/workout-integrity.test.js",
+    "upload:miniprogram": "node scripts/upload-miniprogram.js",
     "normalize:exercises": "node scripts/normalize-exercises.js",
     "import:exercises": "node scripts/import-exercises.js",
     "setup:db": "node scripts/setup-cloudbase-db.js"
@@ -13,5 +14,7 @@
   "engines": {
     "node": ">=20"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "miniprogram-ci": "^2.1.31"
+  }
 }

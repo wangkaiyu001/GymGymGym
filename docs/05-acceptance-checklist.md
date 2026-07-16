@@ -15,7 +15,7 @@
 ## 2. 小程序
 
 - [ ] 微信开发者工具可以打开项目
-- [ ] AppID 已替换为真实 AppID
+- [x] AppID 已替换为 `wxe5658bb09f7c33f9`
 - [x] `wx.cloud.init` 使用 `code-realtime-d7gbuxrbze297e600`
 - [ ] Tab 能正常切换
 - [ ] 今日训练页能创建训练
@@ -75,9 +75,10 @@
 
 ## 5. 用户本人必须执行
 
-- [ ] 提供真实微信小程序 AppID
+- [x] 提供真实微信小程序 AppID
 - [ ] 在微信开发者工具导入项目
 - [ ] 绑定小程序和 CloudBase 环境
+- [ ] 将当前公网 IP `116.6.206.132`（变化时以 CI 报错为准）加入微信小程序代码上传 IP 白名单
 - [ ] 如需要手动使用 CLI，再执行 `tcb login`；日常 Codex 部署可使用当前已认证的 CloudBase MCP
 - [ ] 如要公开发布，确认 Gym visual 媒体授权
 

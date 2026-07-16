@@ -269,7 +269,7 @@ CloudBase 安全规则见 `database/security-rules.json`。
 
 | 风险 | 处理 |
 |---|---|
-| 小程序 AppID 未配置 | 使用 `touristappid` 作为模板，最后由用户替换 |
+| 小程序 AppID 配置错误 | 当前固定为 `wxe5658bb09f7c33f9`，上传前由微信工具校验项目归属 |
 | CloudBase 数据库集合未创建 | 首次写入自动创建或用户在控制台创建 |
 | 完整动作库媒体版权 | 私用保留 attribution；公开发布前确认授权 |
 | 统计与记录不一致 | 提供 `recalculateStats` 重算函数 |

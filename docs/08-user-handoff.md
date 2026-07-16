@@ -170,19 +170,15 @@ git push origin main
 
 ## 用户本人必须完成的事项
 
-1. 将 `/Users/bytedance/Documents/GymGymGym/project.config.json` 中的：
-
-```json
-"appid": "touristappid"
-```
-
-替换成真实微信小程序 AppID。
+1. 微信小程序 AppID 已配置为 `wxe5658bb09f7c33f9`，无需再修改。
 
 2. 用微信开发者工具打开：
 
 ```text
 /Users/bytedance/Documents/GymGymGym
 ```
+
+也可以使用 `npm run upload:miniprogram` 自动上传。当前唯一上传阻塞是微信公众平台 CI IP 白名单：请把 `116.6.206.132` 加入小程序“代码上传 IP 白名单”，公网 IP 变化时以命令报错中的地址为准。
 
 3. 确认小程序绑定 CloudBase 环境：
 

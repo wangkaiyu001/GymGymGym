@@ -173,7 +173,7 @@ tcb db nosql execute --command '[{"TableName":"exercises","CommandType":"QUERY",
 
 1. 安装微信开发者工具。
 2. 创建/准备微信小程序 AppID。
-3. 把 `project.config.json` 中的 `appid` 从 `touristappid` 改为真实 AppID。
+3. `project.config.json` 已配置 AppID `wxe5658bb09f7c33f9`。
 4. 在微信开发者工具中打开本仓库根目录。
 5. 在云开发控制台确认小程序已绑定环境 `code-realtime-d7gbuxrbze297e600`。
 
@@ -183,7 +183,22 @@ tcb db nosql execute --command '[{"TableName":"exercises","CommandType":"QUERY",
 
 上线前最后确认：
 
-1. `project.config.json` 的 `appid` 已替换为真实小程序 AppID。
+1. `project.config.json` 的 AppID 为 `wxe5658bb09f7c33f9`。
 2. 微信开发者工具中的云开发环境为 `code-realtime-d7gbuxrbze297e600`。
 3. 数据库安全规则已按 `database/security-rules.json` 配置。
 4. 两个真实微信用户分别扫码测试，只能看到自己的训练、目标和档案。
+
+### 7.1 官方 CI 上传
+
+本机未安装微信开发者工具时，可使用仓库内的 `scripts/upload-miniprogram.js` 和微信官方 `miniprogram-ci`：
+
+```bash
+MINIPROGRAM_PRIVATE_KEY_PATH=/absolute/path/private.wxe5658bb09f7c33f9.key \
+MINIPROGRAM_VERSION=0.1.0 \
+MINIPROGRAM_DESC="GymGymGym MVP" \
+npm run upload:miniprogram
+```
+
+密钥路径只通过环境变量传入，不写入源码和 Git 历史。
+
+首次上传如果返回 `invalid ip`，需要在微信公众平台的小程序开发设置中，把命令输出的当前公网 IP 加入“代码上传 IP 白名单”后重试。2026-07-16 本机首次尝试识别到的公网 IP 为 `116.6.206.132`。
