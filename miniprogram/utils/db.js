@@ -110,9 +110,11 @@ async function listExercises(filters) {
     if (query.equipment) conditions.push({ equipment_zh: query.equipment });
 
     const collection = db.collection('exercises');
+    const page = Math.max(0, Number(query.page) || 0);
+    const pageSize = Math.min(50, Math.max(1, Number(query.pageSize) || 30));
     const result = conditions.length > 0
-      ? await collection.where(_.and(conditions)).limit(50).get()
-      : await collection.limit(50).get();
+      ? await collection.where(_.and(conditions)).skip(page * pageSize).limit(pageSize).get()
+      : await collection.skip(page * pageSize).limit(pageSize).get();
 
     if (result.data && result.data.length > 0) return result.data;
   } catch (error) {
@@ -131,6 +133,14 @@ async function listExercises(filters) {
     const matchEquipment = !query.equipment || item.equipment_zh === query.equipment;
     return matchKeyword && matchBody && matchEquipment;
   });
+}
+
+async function getExerciseHistoryMap() {
+  const stats = await listExerciseStats();
+  return stats.reduce((acc, item) => {
+    acc[item.exercise_id] = item;
+    return acc;
+  }, {});
 }
 
 async function listExercisesByIds(ids) {
@@ -430,6 +440,7 @@ module.exports = {
   getFavoriteExerciseIds,
   saveFavoriteExerciseIds,
   getExerciseById,
+  getExerciseHistoryMap,
   createSession,
   updateSession,
   deleteSession,

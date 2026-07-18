@@ -1,115 +1,34 @@
-.hero { background: linear-gradient(135deg, #111827, #2563eb); color: #fff; }
+.hero { background: #101828; color: #fff; }
 .hero .title, .hero .subtitle { color: #fff; }
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18rpx; }
-.mini-actions { display: flex; gap: 12rpx; }
-.superset-size-picker { flex: none; }
-.small-btn.size-btn { background: #fff7ed; color: #c2410c; }
-.small-btn {
-  min-height: 58rpx;
-  line-height: 58rpx;
-  border-radius: 999rpx;
-  padding: 0 20rpx;
-  font-size: 24rpx;
-  background: #e8f0ff;
-  color: #1d4ed8;
-  border: 0;
-}
+.compact-hero { padding-bottom: 24rpx; }
+.small-btn { min-height: 58rpx; line-height: 58rpx; border-radius: 999rpx; padding: 0 20rpx; font-size: 24rpx; border: 0; background: #e8f0ff; color: #1d4ed8; }
 .small-btn.ghost { background: #f2f4f7; color: #344054; }
 .small-btn.danger { background: #fff1f3; color: #c01048; }
-.reminder-card .section-title { margin-bottom: 6rpx; }
-.reminder-desc { color: #667085; font-size: 23rpx; margin-bottom: 18rpx; }
-.reminder-list { display: flex; flex-wrap: wrap; gap: 14rpx; }
-.reminder-item { min-width: 180rpx; flex: 1; border-radius: 20rpx; padding: 18rpx; background: #ecfdf3; color: #027a48; }
+.reminder-card .section-title { margin-bottom: 14rpx; }
+.reminder-list { display: flex; gap: 12rpx; overflow-x: auto; }
+.reminder-item { min-width: 158rpx; border-radius: 18rpx; padding: 16rpx; background: #ecfdf3; color: #027a48; }
 .reminder-item.recent { background: #fff7ed; color: #c2410c; }
 .reminder-item.today { background: #fff1f3; color: #c01048; }
-.reminder-part { font-size: 27rpx; font-weight: 800; }
-.reminder-hint { margin-top: 6rpx; font-size: 22rpx; }
-.recommend-box {
-  margin-top: 22rpx;
-  padding: 20rpx;
-  border-radius: 22rpx;
-  background: #f8fafc;
-  border: 1rpx solid #e2e8f0;
-}
-.recommend-title { font-size: 28rpx; font-weight: 800; color: #101828; }
-.recommend-desc { margin-top: 6rpx; color: #667085; font-size: 22rpx; }
-.recommend-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16rpx;
-  padding: 18rpx 0;
-  border-top: 1rpx solid #eaecf0;
-}
-.recommend-name { font-size: 28rpx; font-weight: 800; }
-.recommend-meta { margin-top: 6rpx; color: #475467; font-size: 23rpx; }
-.recommend-reason { margin-top: 6rpx; color: #1d4ed8; font-size: 22rpx; }
-.block {
-  padding: 22rpx 0;
-  border-top: 1rpx solid #eaecf0;
-}
-.block-title { font-size: 30rpx; font-weight: 800; }
-.block-meta { font-size: 24rpx; color: #667085; margin-top: 6rpx; }
-.set-line {
-  background: #f8fafc;
-  border-radius: 18rpx;
-  padding: 18rpx;
-  margin-top: 16rpx;
-}
-.set-name { font-size: 26rpx; font-weight: 700; margin-bottom: 14rpx; }
-.set-inputs { display: flex; align-items: center; gap: 8rpx; color: #667085; font-size: 22rpx; }
-.set-input {
-  width: 112rpx;
-  height: 62rpx;
-  background: #fff;
-  border-radius: 14rpx;
-  text-align: center;
-}
-.set-input.small { width: 88rpx; }
-.set-flags { gap: 12rpx; margin-top: 14rpx; }
-.flag {
-  padding: 8rpx 16rpx;
-  border-radius: 999rpx;
-  background: #fff;
-  color: #667085;
-  font-size: 22rpx;
-}
-.flag.active { background: #101828; color: #fff; }
-.flag.danger { color: #c01048; }
-.finish { margin-top: 22rpx; }
-.workout-footer-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 16rpx; margin-top: 22rpx; }
-.recent-head { align-items: flex-start; }
-.recent-desc {
-  margin-top: 6rpx;
-  color: #667085;
-  font-size: 23rpx;
-}
-.recent-filter-list { margin: 18rpx 0 4rpx; }
-.recent-filter {
-  background: #f2f4f7;
-  color: #344054;
-}
-.recent-filter.active {
-  background: #101828;
-  color: #fff;
-}
-.recent-filter.disabled { opacity: 0.48; }
-.session-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20rpx 0;
-  border-top: 1rpx solid #eaecf0;
-}
-.session-title { font-weight: 700; }
-.session-meta { font-size: 24rpx; color: #667085; margin-top: 8rpx; }
-.session-match {
-  display: inline-block;
-  margin-top: 10rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 999rpx;
-  background: #ecfdf3;
-  color: #027a48;
-  font-size: 21rpx;
-}
-.arrow { font-size: 40rpx; color: #98a2b3; }
+.reminder-part { font-size: 26rpx; font-weight: 800; }
+.reminder-hint { margin-top: 6rpx; font-size: 21rpx; }
+.cloud-error { border: 2rpx solid #fda29b; background: #fff1f3; }
+.prompt-input { width: 100%; min-height: 180rpx; box-sizing: border-box; border-radius: 22rpx; background: #f2f4f7; padding: 22rpx; font-size: 29rpx; line-height: 1.55; }
+.planning-row { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; margin-top: 18rpx; }
+.date-picker { padding: 14rpx 18rpx; background: #f8fafc; border-radius: 999rpx; color: #344054; font-size: 23rpx; }
+.plan-head { align-items: flex-start; }
+.workout-block { padding: 24rpx 0; border-top: 1rpx solid #eaecf0; }
+.block-head { align-items: flex-start; gap: 16rpx; }
+.block-title { font-size: 31rpx; font-weight: 800; }
+.block-meta { color: #667085; font-size: 23rpx; margin-top: 7rpx; }
+.set-line { display: flex; align-items: center; gap: 12rpx; margin-top: 14rpx; padding: 14rpx; border-radius: 18rpx; background: #f8fafc; }
+.set-number { width: 42rpx; height: 42rpx; border-radius: 50%; background: #101828; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22rpx; }
+.set-inputs { flex: 1; display: flex; align-items: center; gap: 7rpx; color: #667085; font-size: 21rpx; }
+.set-input { width: 102rpx; height: 62rpx; border-radius: 14rpx; text-align: center; background: #fff; font-weight: 800; color: #101828; }
+.set-input.small { width: 82rpx; }
+.add-set-btn { margin: 14rpx 0 0; min-height: 56rpx; line-height: 56rpx; border: 0; border-radius: 999rpx; background: #eef4ff; color: #1d4ed8; font-size: 23rpx; }
+.workout-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 14rpx; margin-top: 16rpx; }
+.workout-actions .btn:only-child { grid-column: 1 / -1; }
+.session-row { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 0; border-top: 1rpx solid #eaecf0; }
+.session-title { font-weight: 800; }
+.session-meta { color: #667085; font-size: 23rpx; margin-top: 6rpx; }
+.arrow { color: #98a2b3; font-size: 42rpx; }

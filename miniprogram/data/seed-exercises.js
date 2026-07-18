@@ -17,6 +17,7 @@ const seedExercises = [
     movement_pattern: 'push',
     difficulty: 'intermediate',
     is_common: true,
+    image: 'images/0025-EIeI8Vf.jpg',
   },
   {
     _id: 'barbell_squat',
@@ -36,6 +37,7 @@ const seedExercises = [
     movement_pattern: 'squat',
     difficulty: 'intermediate',
     is_common: true,
+    image: 'images/0043-qXTaZnJ.jpg',
   },
   {
     _id: 'deadlift',
@@ -55,6 +57,7 @@ const seedExercises = [
     movement_pattern: 'hinge',
     difficulty: 'advanced',
     is_common: true,
+    image: 'images/0032-ila4NZS.jpg',
   },
   {
     _id: 'lat_pulldown',
@@ -74,6 +77,7 @@ const seedExercises = [
     movement_pattern: 'pull',
     difficulty: 'beginner',
     is_common: true,
+    image: 'images/0405-znQUdHY.jpg',
   },
   {
     _id: 'dumbbell_shoulder_press',
@@ -93,6 +97,7 @@ const seedExercises = [
     movement_pattern: 'push',
     difficulty: 'beginner',
     is_common: true,
+    image: 'images/0285-BU15nH4.jpg',
   },
   {
     _id: 'dumbbell_biceps_curl',
@@ -112,6 +117,7 @@ const seedExercises = [
     movement_pattern: 'pull',
     difficulty: 'beginner',
     is_common: true,
+    image: 'images/0294-NbVPDMW.jpg',
   },
   {
     _id: 'cable_triceps_pushdown',
@@ -131,6 +137,7 @@ const seedExercises = [
     movement_pattern: 'push',
     difficulty: 'beginner',
     is_common: true,
+    image: 'images/0200-dU605di.jpg',
   },
   {
     _id: 'dumbbell_lateral_raise',
@@ -150,6 +157,7 @@ const seedExercises = [
     movement_pattern: 'isolation',
     difficulty: 'beginner',
     is_common: true,
+    image: 'images/0334-DsgkuIt.jpg',
   }
 ];
 

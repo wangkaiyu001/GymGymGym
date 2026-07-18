@@ -1,0 +1,21 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const goals = fs.readFileSync(path.join(root, 'miniprogram/pages/goals/goals.wxml'), 'utf8');
+const profile = fs.readFileSync(path.join(root, 'miniprogram/pages/profile/profile.wxml'), 'utf8');
+const training = fs.readFileSync(path.join(root, 'miniprogram/pages/training/training.wxml'), 'utf8');
+const exercises = fs.readFileSync(path.join(root, 'miniprogram/pages/exercises/exercises.js'), 'utf8');
+
+assert.equal(goals.includes('创建具体目标'), false);
+assert.equal(profile.includes('导出 JSON'), false);
+assert.equal(profile.includes('动作表现'), false);
+assert.equal(profile.includes('训练次数'), false);
+assert.equal(profile.includes('近期训练摘要'), true);
+assert.equal(profile.includes('近期 PR'), true);
+assert.equal(training.includes('告诉我今天的情况'), true);
+assert.equal(training.includes('重新生成'), true);
+assert.equal(training.includes('训练日期'), true);
+assert.equal(exercises.includes('onReachBottom'), true);
+assert.equal(exercises.includes('tcloudbaseapp.com/exercise-media/images'), true);
+console.log('product-focus tests passed');

@@ -1,34 +1,7 @@
 <view class="container">
   <view class="card hero">
-    <view class="title">个人档案</view>
-    <view class="subtitle">动作次数、最大重量和训练容量自动汇总</view>
-  </view>
-
-  <view class="card metric-grid">
-    <view class="metric">
-      <view class="metric-value">{{summary.totalSessions}}</view>
-      <view class="metric-label">训练次数</view>
-    </view>
-    <view class="metric">
-      <view class="metric-value">{{summary.totalSets}}</view>
-      <view class="metric-label">有效组数</view>
-    </view>
-    <view class="metric">
-      <view class="metric-value">{{summary.totalReps}}</view>
-      <view class="metric-label">总次数</view>
-    </view>
-    <view class="metric">
-      <view class="metric-value">{{summary.totalVolume}}</view>
-      <view class="metric-label">总容量 kg</view>
-    </view>
-  </view>
-
-  <view class="card backup-card">
-    <view>
-      <view class="section-title">数据备份</view>
-      <view class="backup-desc">导出当前账号的训练、组明细、档案统计和具体目标为 JSON 文件。</view>
-    </view>
-    <button class="btn btn-secondary backup-btn" loading="{{isExporting}}" disabled="{{isExporting}}" bindtap="exportBackup">{{isExporting ? '生成中...' : '导出 JSON 备份'}}</button>
+    <view class="title">训练复盘</view>
+    <view class="subtitle">只看最近有没有在练，以及真正突破了什么</view>
   </view>
 
   <view class="card">
@@ -38,26 +11,17 @@
         <view class="period-label">{{item.label}}</view>
         <view class="period-main">{{item.sessions}} 次训练</view>
         <view class="period-grid">
-          <view>
-            <text>{{item.sets}}</text>
-            <view>有效组</view>
-          </view>
-          <view>
-            <text>{{item.reps}}</text>
-            <view>总次数</view>
-          </view>
-          <view>
-            <text>{{item.volume}}</text>
-            <view>容量 kg</view>
-          </view>
+          <view><text>{{item.sets}}</text><view>有效组</view></view>
+          <view><text>{{item.reps}}</text><view>总次数</view></view>
+          <view><text>{{item.volume}}</text><view>容量 kg</view></view>
         </view>
       </view>
     </view>
   </view>
 
   <view class="card">
-    <view class="section-title">PR 关注</view>
-    <empty-state wx:if="{{prHighlights.length === 0}}" title="暂无 PR 数据" desc="记录带重量的正式组后，这里会显示你的当前强项" />
+    <view class="section-title">近期 PR</view>
+    <empty-state wx:if="{{prHighlights.length === 0}}" title="还没有 PR" desc="完成几次带重量的训练后，这里会出现突破" />
     <view wx:for="{{prHighlights}}" wx:key="_id" class="pr-row">
       <view class="pr-rank">{{index + 1}}</view>
       <view class="pr-content">
@@ -66,29 +30,6 @@
           <view class="pr-score">{{item.pr_metric}}</view>
         </view>
         <view class="stat-meta">{{item.pr_subtitle}} · 最近 {{item.display_last_performed}}</view>
-      </view>
-    </view>
-  </view>
-
-  <view class="card">
-    <view class="row between">
-      <view class="section-title">动作表现</view>
-      <button class="small-btn" bindtap="recalculate">重算</button>
-    </view>
-    <empty-state wx:if="{{stats.length === 0}}" title="暂无动作统计" desc="保存训练后点击重算或稍后回来查看" />
-    <view wx:for="{{stats}}" wx:key="_id" class="stat-row">
-      <view class="row between">
-        <view>
-          <view class="stat-name">{{item.display_name}}</view>
-          <view class="stat-meta">最近 {{item.display_last_performed}}</view>
-        </view>
-        <view class="stat-pr">{{item.max_weight_kg}} kg</view>
-      </view>
-      <view class="stat-grid">
-        <view>组数 <text>{{item.total_sets}}</text></view>
-        <view>次数 <text>{{item.total_reps}}</text></view>
-        <view>容量 <text>{{item.total_volume_kg}}</text></view>
-        <view>估算1RM <text>{{item.estimated_1rm_kg}}</text></view>
       </view>
     </view>
   </view>

@@ -77,6 +77,21 @@ const targetZh = {
   'upper back': '上背部',
 };
 
+const commonExerciseNames = new Set([
+  'barbell bench press',
+  'barbell full squat',
+  'barbell deadlift',
+  'cable lat pulldown',
+  'dumbbell seated shoulder press',
+  'dumbbell alternate biceps curl',
+  'cable pushdown (with rope attachment)',
+  'dumbbell lateral raise',
+  'pull-up',
+  'push-up',
+  'barbell bent over row',
+  'leg press',
+]);
+
 function parseArgs(argv) {
   const args = {
     sourcePath: DEFAULT_SOURCE,
@@ -186,7 +201,7 @@ function normalize(item, options) {
     gif_url: buildMedia(item.gif_url || item.gifUrl || '', options.mediaBaseUrl),
     attribution: item.attribution || '© Gym visual — https://gymvisual.com/',
     media_id: item.media_id || '',
-    is_common: false,
+    is_common: commonExerciseNames.has(String(item.name || '').toLowerCase()),
     is_custom: false,
     raw: {
       created_at: item.created_at || '',

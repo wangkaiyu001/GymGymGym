@@ -188,6 +188,16 @@ tcb db nosql execute --command '[{"TableName":"exercises","CommandType":"QUERY",
 3. 数据库安全规则已按 `database/security-rules.json` 配置。
 4. 两个真实微信用户分别扫码测试，只能看到自己的训练、目标和档案。
 
+### 7.2 小程序关联（必须）
+
+真机没有进入任何云函数日志，CloudBase 官方文档确认：独立 CloudBase 环境必须在「环境配置 → 安全配置 → 小程序关联」中绑定当前 AppID。未关联时 `wx.cloud.init` 会报非法 env，随后云函数、数据库和存储全部失败。
+
+请关联：
+
+```text
+wxe5658bb09f7c33f9
+```
+
 ### 7.1 官方 CI 上传
 
 本机未安装微信开发者工具时，可使用仓库内的 `scripts/upload-miniprogram.js` 和微信官方 `miniprogram-ci`：

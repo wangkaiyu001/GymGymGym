@@ -1,674 +1,279 @@
-const {
-  GOAL_OPTIONS,
-  LOCATION_OPTIONS,
-  BODY_PART_OPTIONS,
-  EQUIPMENT_OPTIONS,
-  ENERGY_OPTIONS,
-  INTENT_OPTIONS,
-} = require('../../utils/constants');
 const { formatDate, toNumber } = require('../../utils/format');
 const { buildBodyPartReminders } = require('../../utils/training-reminders');
+const { parseWorkoutPrompt, buildPlan } = require('../../utils/workout-planner');
 const {
   getUserContext,
+  getExerciseHistoryMap,
+  listRecommendedExercises,
+  listRecentSessions,
+  getLatestDraftSession,
+  getSessionBundle,
+  getExerciseById,
   createSession,
   updateSession,
   deleteSession: removeWorkoutSession,
   addBlock,
   updateBlock,
+  deleteBlock,
   addSet,
   updateSet,
-  listRecentSessions,
-  getLatestDraftSession,
-  getSessionBundle,
-  getExerciseById,
-  getFavoriteExerciseIds,
-  listRecommendedExercises,
+  deleteSet,
 } = require('../../utils/db');
 
-function indexOfValue(options, value) {
-  const index = options.findIndex((item) => item.value === value);
-  return index >= 0 ? index : 0;
-}
-
-function mapSelectableOptions(options, selected) {
-  const selectedList = selected || [];
-  return options.map((label) => ({
-    label,
-    value: label,
-    selected: selectedList.indexOf(label) >= 0,
-  }));
-}
-
-const RECENT_SESSION_FILTERS = [
-  { value: 'all', label: '全部' },
-  { value: 'same_goal', label: '同目标' },
-  { value: 'same_location', label: '同场所' },
-  { value: 'same_context', label: '同目标+场所' },
-];
-
-const SUPERSET_SIZE_OPTIONS = [2, 3, 4];
-
-function labelOf(options, value) {
-  const item = options.find((option) => option.value === value);
-  return item ? item.label : value;
-}
-
-function matchesRecentSessionFilter(session, form, filter) {
-  const sameGoal = session.goal_type === form.goal_type;
-  const sameLocation = session.location === form.location;
-  if (filter === 'same_goal') return sameGoal;
-  if (filter === 'same_location') return sameLocation;
-  if (filter === 'same_context') return sameGoal && sameLocation;
-  return true;
-}
-
-function mapRecentSessionForView(session, form) {
-  const sameGoal = session.goal_type === form.goal_type;
-  const sameLocation = session.location === form.location;
-  const badges = [];
-  if (sameGoal) badges.push('同目标');
-  if (sameLocation) badges.push('同场所');
-  return Object.assign({}, session, {
-    location_label: labelOf(LOCATION_OPTIONS, session.location),
-    goal_label: labelOf(GOAL_OPTIONS, session.goal_type),
-    match_text: badges.join(' · '),
-  });
-}
-
-function buildRecentSessionFilterOptions(sessions, form, activeValue) {
-  return RECENT_SESSION_FILTERS.map((filter) => ({
-    value: filter.value,
-    label: filter.label,
-    count: sessions.filter((session) => matchesRecentSessionFilter(session, form, filter.value)).length,
-    active: filter.value === activeValue,
-  }));
-}
-
-function buildIntent(form) {
-  const timeLimit = String(form.time_limit_min || '').trim();
+function makeSet(exercise, index, prescription) {
   return {
-    focus_body_parts: form.focus_body_parts,
-    available_equipment: form.available_equipment,
-    training_intent: form.training_intent,
-    energy_level: form.energy_level,
-    time_limit_min: timeLimit ? toNumber(timeLimit, null) : null,
-    note: form.note,
-  };
-}
-
-function mapRecommendationForView(item, form, favoriteIds) {
-  const reasons = [];
-  const bodyPart = item.body_part_zh || '';
-  const equipment = item.equipment_zh || '';
-  if (favoriteIds.indexOf(item._id) >= 0 || favoriteIds.indexOf(item.source_id) >= 0) reasons.push('常用');
-  if ((form.focus_body_parts || []).some((part) => bodyPart.indexOf(part) >= 0)) reasons.push(bodyPart);
-  if ((form.available_equipment || []).some((name) => equipment.indexOf(name) >= 0)) reasons.push(equipment);
-  if (form.training_intent === 'breakthrough') reasons.push('适合突破');
-  if (form.training_intent === 'maintain') reasons.push('维稳');
-  if (form.training_intent === 'deload') reasons.push('减量');
-  if (form.training_intent === 'technique') reasons.push('技术打磨');
-  return Object.assign({}, item, {
-    display_name: item.name_zh || item.name,
-    display_body_part: bodyPart || item.body_part,
-    display_equipment: equipment || item.equipment,
-    reason_text: reasons.slice(0, 3).join(' · ') || '根据当前场景推荐',
-  });
-}
-
-function mapBlocksForView(blocks) {
-  return blocks.map((block, blockIndex) => Object.assign({}, block, {
-    block_index: blockIndex,
-    sets: block.sets.map((set) => Object.assign({}, set, { block_index: blockIndex })),
-  }));
-}
-
-function makeSet(exercise, roundIndex, exerciseOrder, localIndex) {
-  return {
-    local_id: `${exercise._id}-${Date.now()}-${localIndex}`,
-    set_index_local: localIndex,
+    local_id: `${exercise._id}-${Date.now()}-${index}`,
+    set_index_local: index,
     exercise_id: exercise._id,
     exercise_name: exercise.name_zh || exercise.name,
-    round_index: roundIndex,
-    exercise_order_in_block: exerciseOrder,
-    weight_kg: '',
-    reps: '',
-    rpe: '',
+    round_index: index + 1,
+    exercise_order_in_block: 1,
+    weight_kg: prescription.weight_kg ? String(prescription.weight_kg) : '',
+    reps: String(prescription.reps || 10),
+    rpe: String(prescription.rpe || 7),
     is_warmup: false,
     is_failure: false,
   };
 }
 
-async function getExerciseName(exerciseId) {
-  const exercise = await getExerciseById(exerciseId);
-  return exercise ? (exercise.name_zh || exercise.name || exerciseId) : exerciseId;
+function createPlanBlock(item, blockIndex) {
+  const sets = Array.from({ length: item.prescription.sets }, (_, index) => makeSet(item.exercise, index, item.prescription));
+  return {
+    local_id: `plan-${item.exercise._id}-${Date.now()}-${blockIndex}`,
+    order: blockIndex + 1,
+    block_index: blockIndex,
+    type: 'single',
+    title: item.exercise.name_zh || item.exercise.name,
+    exercises: [item.exercise],
+    plan_reason: item.reason,
+    sets,
+  };
 }
 
-function makeCopiedSet(set, exerciseName, localIndex) {
-  return {
-    local_id: `copy-${set._id || set.exercise_id}-${Date.now()}-${localIndex}`,
-    set_index_local: localIndex,
-    exercise_id: set.exercise_id,
-    exercise_name: exerciseName,
-    round_index: set.round_index || 1,
-    exercise_order_in_block: set.exercise_order_in_block || 1,
-    weight_kg: String(set.weight_kg || ''),
-    reps: String(set.reps || ''),
-    rpe: set.rpe ? String(set.rpe) : '',
-    is_warmup: Boolean(set.is_warmup),
-    is_failure: Boolean(set.is_failure),
-  };
+function mapBlocks(blocks) {
+  return blocks.map((block, blockIndex) => Object.assign({}, block, {
+    block_index: blockIndex,
+    sets: block.sets.map((set, setIndex) => Object.assign({}, set, {
+      block_index: blockIndex,
+      set_index_local: setIndex,
+    })),
+  }));
+}
+
+async function exerciseName(id) {
+  const exercise = await getExerciseById(id);
+  return exercise ? (exercise.name_zh || exercise.name || id) : id;
 }
 
 Page({
   data: {
-    user: null,
+    user: {},
     sessionId: '',
-    isStarting: false,
-    isSaving: false,
-    startDisabled: false,
+    mode: 'planning',
+    prompt: '',
+    planDate: formatDate(),
     blocks: [],
-    recentSessions: [],
-    recentSessionsAll: [],
-    recentSessionFilter: 'all',
-    recentSessionFilterOptions: buildRecentSessionFilterOptions([], {}, 'all'),
-    pickerVisible: false,
-    pendingBlockType: 'single',
-    pendingExercises: [],
-    supersetSizeOptions: SUPERSET_SIZE_OPTIONS,
-    supersetSizeIndex: 0,
-    supersetTargetSize: SUPERSET_SIZE_OPTIONS[0],
-    favoriteExerciseIds: [],
-    recommendedExercises: [],
     bodyPartReminders: [],
-    form: {
-      title: '今日训练',
-      date: formatDate(),
-      location: LOCATION_OPTIONS[0].value,
-      goal_type: GOAL_OPTIONS[0].value,
-      training_intent: INTENT_OPTIONS[0].value,
-      energy_level: ENERGY_OPTIONS[1].value,
-      time_limit_min: '',
-      focus_body_parts: [],
-      available_equipment: [],
-      note: '',
-    },
-    goalOptions: GOAL_OPTIONS,
-    locationOptions: LOCATION_OPTIONS,
-    energyOptions: ENERGY_OPTIONS,
-    intentOptions: INTENT_OPTIONS,
-    goalLabels: GOAL_OPTIONS.map((item) => item.label),
-    locationLabels: LOCATION_OPTIONS.map((item) => item.label),
-    energyLabels: ENERGY_OPTIONS.map((item) => item.label),
-    intentLabels: INTENT_OPTIONS.map((item) => item.label),
-    goalIndex: 0,
-    locationIndex: 0,
-    energyIndex: 1,
-    intentIndex: 0,
-    bodyPartOptions: mapSelectableOptions(BODY_PART_OPTIONS, []),
-    equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, []),
+    recentSessions: [],
+    isGenerating: false,
+    isSaving: false,
+    cloudError: '',
   },
 
-  onLoad() {
-    this.bootstrap();
-  },
-
-  onShow() {
-    this.loadRecentSessions();
-  },
+  onLoad() { this.bootstrap(); },
+  onShow() { this.loadRecent(); },
 
   async bootstrap() {
     try {
       const context = await getUserContext();
       getApp().globalData.userContext = context;
-      const user = context.user || {};
-      const favoriteExerciseIds = await getFavoriteExerciseIds(context.openid);
-      const patch = { user, favoriteExerciseIds };
-      if (user.default_goal) {
-        patch['form.goal_type'] = user.default_goal;
-        patch.goalIndex = indexOfValue(GOAL_OPTIONS, user.default_goal);
-      }
-      if (user.default_location) {
-        patch['form.location'] = user.default_location;
-        patch.locationIndex = indexOfValue(LOCATION_OPTIONS, user.default_location);
-      }
-      if (user.available_equipment_home && user.available_equipment_home.length > 0) {
-        patch['form.available_equipment'] = user.available_equipment_home;
-        patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, user.available_equipment_home);
-      }
-      this.setData(patch);
-      await this.restoreLatestDraft();
-      this.loadRecommendations();
+      this.setData({ user: context.user || {}, cloudError: '' });
+      await Promise.all([this.restoreDraft(), this.loadRecent()]);
+      if (!this.data.sessionId && this.data.blocks.length === 0) await this.generatePlan(true);
     } catch (error) {
-      wx.showToast({ title: '云函数未部署', icon: 'none' });
+      const message = String(error.errMsg || error.message || error);
+      this.setData({ cloudError: message });
+      wx.showModal({
+        title: '云开发尚未关联',
+        content: '请先在 CloudBase 环境设置中关联当前小程序 AppID。关联完成后重新打开小程序即可。',
+        showCancel: false,
+      });
       console.error(error);
     }
-    this.loadRecentSessions();
   },
 
-  async restoreLatestDraft() {
-    if (this.data.sessionId || this.data.blocks.length > 0) return;
+  async loadRecent() {
     try {
-      const draft = await getLatestDraftSession();
-      if (!draft) return;
-      const bundle = await getSessionBundle(draft._id);
-      const nameMap = {};
-      for (let i = 0; i < bundle.sets.length; i += 1) {
-        const exerciseId = bundle.sets[i].exercise_id;
-        if (!nameMap[exerciseId]) nameMap[exerciseId] = await getExerciseName(exerciseId);
-      }
-      const blocks = bundle.blocks.map((block, blockIndex) => {
-        const sets = bundle.sets
-          .filter((set) => set.block_id === block._id)
-          .map((set, setIndex) => Object.assign(
-            makeCopiedSet(set, nameMap[set.exercise_id] || set.exercise_id, setIndex),
-            { remote_id: set._id },
-          ));
-        const exerciseIds = block.exercise_ids || Array.from(new Set(sets.map((set) => set.exercise_id)));
-        return {
-          local_id: `draft-block-${block._id}`,
-          remote_id: block._id,
-          order: block.order || blockIndex + 1,
-          block_index: blockIndex,
-          type: block.type || 'single',
-          title: block.title || exerciseIds.map((id) => nameMap[id] || id).join(' + '),
-          exercises: exerciseIds.map((id) => ({ _id: id, name: nameMap[id] || id, name_zh: nameMap[id] || id })),
-          sets,
-        };
-      });
-      const intent = draft.intent || {};
+      if (!getApp().globalData.userContext) return;
+      const sessions = await listRecentSessions(10);
       this.setData({
-        sessionId: draft._id,
-        startDisabled: true,
-        blocks: mapBlocksForView(blocks),
-        'form.title': draft.title || '今日训练',
-        'form.date': draft.date || formatDate(),
-        'form.location': draft.location || this.data.form.location,
-        'form.goal_type': draft.goal_type || this.data.form.goal_type,
-        'form.training_intent': intent.training_intent || this.data.form.training_intent,
-        'form.energy_level': intent.energy_level || this.data.form.energy_level,
-        'form.time_limit_min': intent.time_limit_min === null || intent.time_limit_min === undefined ? '' : String(intent.time_limit_min),
-        'form.focus_body_parts': intent.focus_body_parts || [],
-        'form.available_equipment': intent.available_equipment || [],
-        'form.note': draft.notes || intent.note || '',
-        locationIndex: indexOfValue(LOCATION_OPTIONS, draft.location),
-        goalIndex: indexOfValue(GOAL_OPTIONS, draft.goal_type),
-        intentIndex: indexOfValue(INTENT_OPTIONS, intent.training_intent),
-        energyIndex: indexOfValue(ENERGY_OPTIONS, intent.energy_level),
-        bodyPartOptions: mapSelectableOptions(BODY_PART_OPTIONS, intent.focus_body_parts || []),
-        equipmentOptions: mapSelectableOptions(EQUIPMENT_OPTIONS, intent.available_equipment || []),
+        recentSessions: sessions.slice(0, 5),
+        bodyPartReminders: buildBodyPartReminders(sessions),
       });
-      wx.showToast({ title: '已恢复上次草稿', icon: 'none' });
-    } catch (error) {
-      console.warn('恢复训练草稿失败', error);
-    }
-  },
-
-  async loadRecommendations() {
-    try {
-      const items = await listRecommendedExercises(Object.assign({}, buildIntent(this.data.form), {
-        preferred_ids: this.data.favoriteExerciseIds,
-        limit: 8,
-      }));
-      this.setData({
-        recommendedExercises: items.map((item) => mapRecommendationForView(item, this.data.form, this.data.favoriteExerciseIds)),
-      });
-    } catch (error) {
-      console.warn('生成推荐动作失败', error);
-    }
-  },
-
-  async loadRecentSessions() {
-    try {
-      const app = getApp();
-      if (!app.globalData.userContext) return;
-      const recentSessions = await listRecentSessions(20);
-      this.setData({
-        recentSessionsAll: recentSessions,
-        bodyPartReminders: buildBodyPartReminders(recentSessions),
-      }, () => this.applyRecentSessionFilter());
     } catch (error) {
       console.warn('读取最近训练失败', error);
     }
   },
 
-  applyRecentSessionFilter() {
-    const filter = this.data.recentSessionFilter;
-    const form = this.data.form;
-    const sessions = this.data.recentSessionsAll || [];
-    const filtered = sessions
-      .filter((session) => matchesRecentSessionFilter(session, form, filter))
-      .slice(0, 5)
-      .map((session) => mapRecentSessionForView(session, form));
-    this.setData({
-      recentSessions: filtered,
-      recentSessionFilterOptions: buildRecentSessionFilterOptions(sessions, form, filter),
-    });
-  },
-
-  onRecentSessionFilterTap(event) {
-    const value = event.currentTarget.dataset.value || 'all';
-    this.setData({ recentSessionFilter: value }, () => this.applyRecentSessionFilter());
-  },
-
-  onFormInput(event) {
-    const key = event.currentTarget.dataset.key;
-    this.setData({ [`form.${key}`]: event.detail.value });
-  },
-
-  onLocationChange(event) {
-    const index = Number(event.detail.value);
-    this.setData({
-      locationIndex: index,
-      'form.location': LOCATION_OPTIONS[index].value,
-    }, () => this.applyRecentSessionFilter());
-  },
-
-  onGoalChange(event) {
-    const index = Number(event.detail.value);
-    this.setData({
-      goalIndex: index,
-      'form.goal_type': GOAL_OPTIONS[index].value,
-    }, () => this.applyRecentSessionFilter());
-  },
-
-  onIntentChange(event) {
-    const index = Number(event.detail.value);
-    this.setData({
-      intentIndex: index,
-      'form.training_intent': INTENT_OPTIONS[index].value,
-    });
-    this.loadRecommendations();
-  },
-
-  onEnergyChange(event) {
-    const index = Number(event.detail.value);
-    this.setData({
-      energyIndex: index,
-      'form.energy_level': ENERGY_OPTIONS[index].value,
-    });
-    this.loadRecommendations();
-  },
-
-  toggleListValue(listKey, value) {
-    const list = this.data.form[listKey];
-    const next = list.indexOf(value) >= 0 ? list.filter((item) => item !== value) : list.concat(value);
-    const patch = { [`form.${listKey}`]: next };
-    if (listKey === 'focus_body_parts') patch.bodyPartOptions = mapSelectableOptions(BODY_PART_OPTIONS, next);
-    if (listKey === 'available_equipment') patch.equipmentOptions = mapSelectableOptions(EQUIPMENT_OPTIONS, next);
-    this.setData(patch);
-    this.loadRecommendations();
-  },
-
-  toggleBodyPart(event) {
-    this.toggleListValue('focus_body_parts', event.currentTarget.dataset.value);
-  },
-
-  toggleEquipment(event) {
-    this.toggleListValue('available_equipment', event.currentTarget.dataset.value);
-  },
-
-  async ensureSession() {
-    if (this.data.sessionId) return this.data.sessionId;
-    if (this.data.isStarting) return '';
-    this.setData({ isStarting: true, startDisabled: true });
-    wx.showLoading({ title: '创建中' });
+  async generatePlan(silent) {
+    if (this.data.isGenerating) return;
+    this.setData({ isGenerating: true });
+    if (!silent) wx.showLoading({ title: '正在生成' });
     try {
-      const form = this.data.form;
-      const sessionId = await createSession({
-        date: form.date,
-        title: form.title || '今日训练',
-        location: form.location,
-        goal_type: form.goal_type,
-        mode: 'manual',
-        intent: buildIntent(form),
-        notes: form.note,
+      const context = parseWorkoutPrompt(this.data.prompt, this.data.user);
+      if (!context.focus_body_parts.length) {
+        const ready = this.data.bodyPartReminders.find((item) => item.state === 'ready');
+        context.focus_body_parts = ready ? [ready.part] : ['全身'];
+      }
+      const [exercises, history] = await Promise.all([
+        listRecommendedExercises(Object.assign({}, context, { limit: 8 })),
+        getExerciseHistoryMap(),
+      ]);
+      const plan = buildPlan(exercises, context, history);
+      if (!plan.length) throw new Error('暂时没有找到合适动作');
+      this.setData({
+        blocks: mapBlocks(plan.map(createPlanBlock)),
+        mode: 'planning',
       });
-      this.setData({ sessionId, startDisabled: true });
-      wx.showToast({ title: '已开始', icon: 'success' });
+      if (!silent) wx.showToast({ title: '计划已更新', icon: 'success' });
+    } catch (error) {
+      wx.showToast({ title: '计划生成失败', icon: 'none' });
+      console.error(error);
+    } finally {
+      this.setData({ isGenerating: false });
+      if (!silent) wx.hideLoading();
+    }
+  },
+
+  onPromptInput(event) { this.setData({ prompt: event.detail.value }); },
+  onDateChange(event) { this.setData({ planDate: event.detail.value }); },
+
+  async startWorkout() {
+    if (!this.data.blocks.length) return '';
+    if (!getApp().globalData.userContext) {
+      wx.showToast({ title: '云开发尚未连接', icon: 'none' });
+      return '';
+    }
+    try {
+      let sessionId = this.data.sessionId;
+      if (!sessionId) {
+        sessionId = await createSession({
+          date: this.data.planDate,
+          title: this.data.planDate === formatDate() ? '今日训练' : `${this.data.planDate} 补录`,
+          location: this.data.user.default_location || 'gym',
+          goal_type: this.data.user.default_goal || 'maintenance',
+          mode: this.data.planDate === formatDate() ? 'recommended' : 'history',
+          intent: Object.assign(parseWorkoutPrompt(this.data.prompt, this.data.user), { note: this.data.prompt }),
+          notes: this.data.prompt,
+        });
+      }
+      this.setData({ sessionId, mode: 'training' });
       return sessionId;
     } catch (error) {
-      wx.showToast({ title: '创建失败', icon: 'none' });
+      wx.showToast({ title: '开始训练失败', icon: 'none' });
       console.error(error);
       return '';
-    } finally {
-      this.setData({
-        isStarting: false,
-        startDisabled: Boolean(this.data.sessionId),
-      });
-      wx.hideLoading();
     }
   },
 
-  openPicker(event) {
-    const type = event.currentTarget.dataset.type || 'single';
-    this.setData({
-      pendingBlockType: type,
-      pendingExercises: [],
-      pickerVisible: true,
-    });
-    if (type === 'superset') {
-      wx.showToast({ title: `请选择第1/${this.data.supersetTargetSize}个动作`, icon: 'none' });
-    }
-  },
-
-  onSupersetSizeChange(event) {
-    const index = Number(event.detail.value);
-    this.setData({
-      supersetSizeIndex: index,
-      supersetTargetSize: SUPERSET_SIZE_OPTIONS[index],
-    });
-  },
-
-  closePicker() {
-    this.setData({ pickerVisible: false, pendingExercises: [] });
-  },
-
-  onExerciseSelected(event) {
-    const exercise = event.detail.exercise;
-    if (!exercise) return;
-    if (this.data.pendingExercises.some((item) => item._id === exercise._id)) {
-      wx.showToast({ title: '这个动作已经选过了', icon: 'none' });
-      return;
-    }
-    const pending = this.data.pendingExercises.concat(exercise);
-    const targetSize = this.data.pendingBlockType === 'superset' ? this.data.supersetTargetSize : 1;
-    if (pending.length < targetSize) {
-      this.setData({ pendingExercises: pending });
-      wx.showToast({ title: `再选${targetSize - pending.length}个动作`, icon: 'none' });
-      return;
-    }
-    this.createLocalBlock(pending);
-  },
-
-  createLocalBlock(exercises) {
-    const blockIndex = this.data.blocks.length;
-    const type = this.data.pendingBlockType;
-    const sets = exercises.map((exercise, index) => makeSet(exercise, 1, index + 1, index));
-    const title = type === 'superset'
-      ? exercises.map((item) => item.name_zh || item.name).join(' + ')
-      : (exercises[0].name_zh || exercises[0].name);
-    const block = {
-      local_id: `block-${Date.now()}`,
-      order: blockIndex + 1,
-      block_index: blockIndex,
-      type,
-      title,
-      exercises,
-      sets,
-    };
-    this.setData({
-      blocks: mapBlocksForView(this.data.blocks.concat(block)),
-      pickerVisible: false,
-      pendingExercises: [],
-    });
-  },
-
-  addRecommendedExercise(event) {
-    const id = event.currentTarget.dataset.id;
-    const exercise = this.data.recommendedExercises.find((item) => item._id === id);
-    if (!exercise) return;
-    this.setData({ pendingBlockType: 'single', pendingExercises: [] });
-    this.createLocalBlock([exercise]);
-    wx.showToast({ title: '已加入训练块', icon: 'success' });
-  },
-
-  deleteBlock(event) {
-    const blockIndex = Number(event.currentTarget.dataset.index);
-    const blocks = this.data.blocks.slice();
-    const block = blocks[blockIndex];
-    if (block.remote_id) {
-      wx.showToast({ title: '已保存的训练块暂不支持删除', icon: 'none' });
-      return;
-    }
-    blocks.splice(blockIndex, 1);
-    const next = blocks.map((item, index) => Object.assign({}, item, { order: index + 1 }));
-    this.setData({ blocks: mapBlocksForView(next) });
-  },
+  collapsePlan() { this.setData({ mode: 'planning' }); },
 
   addRound(event) {
     const blockIndex = Number(event.currentTarget.dataset.index);
     const blocks = this.data.blocks.slice();
     const block = blocks[blockIndex];
-    const roundIndex = Math.max.apply(null, block.sets.map((set) => set.round_index)) + 1;
-    const newSets = block.exercises.map((exercise, index) => makeSet(exercise, roundIndex, index + 1, block.sets.length + index));
-    block.sets = block.sets.concat(newSets);
-    blocks[blockIndex] = block;
-    this.setData({ blocks: mapBlocksForView(blocks) });
+    const previous = block.sets[block.sets.length - 1] || {};
+    block.sets.push(makeSet(block.exercises[0], block.sets.length, {
+      weight_kg: previous.weight_kg,
+      reps: previous.reps,
+      rpe: previous.rpe,
+    }));
+    this.setData({ blocks: mapBlocks(blocks) });
+  },
+
+  deleteBlock(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const block = this.data.blocks[index];
+    if (block && block.remote_id) {
+      wx.showToast({ title: '已保存动作请在历史详情删除', icon: 'none' });
+      return;
+    }
+    const blocks = this.data.blocks.slice();
+    blocks.splice(index, 1);
+    this.setData({ blocks: mapBlocks(blocks) });
   },
 
   onSetInput(event) {
     const blockIndex = Number(event.currentTarget.dataset.blockIndex);
     const setIndex = Number(event.currentTarget.dataset.setIndex);
-    const key = event.currentTarget.dataset.key;
     const blocks = this.data.blocks.slice();
-    const set = blocks[blockIndex].sets.find((item) => item.set_index_local === setIndex);
-    set[key] = event.detail.value;
-    this.setData({ blocks: mapBlocksForView(blocks) });
-  },
-
-  deleteSet(event) {
-    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
-    const setIndex = Number(event.currentTarget.dataset.setIndex);
-    const blocks = this.data.blocks.slice();
-    const block = blocks[blockIndex];
-    const set = block.sets.find((item) => item.set_index_local === setIndex);
-    if (set && set.remote_id) {
-      wx.showToast({ title: '已保存的组暂不支持删除', icon: 'none' });
-      return;
-    }
-    block.sets = block.sets.filter((item) => item.set_index_local !== setIndex);
-    blocks[blockIndex] = block;
-    this.setData({ blocks: mapBlocksForView(blocks) });
-  },
-
-  toggleSetFlag(event) {
-    const blockIndex = Number(event.currentTarget.dataset.blockIndex);
-    const setIndex = Number(event.currentTarget.dataset.setIndex);
-    const key = event.currentTarget.dataset.key;
-    const blocks = this.data.blocks.slice();
-    const set = blocks[blockIndex].sets.find((item) => item.set_index_local === setIndex);
-    set[key] = !set[key];
-    this.setData({ blocks: mapBlocksForView(blocks) });
+    blocks[blockIndex].sets[setIndex][event.currentTarget.dataset.key] = event.detail.value;
+    this.setData({ blocks: mapBlocks(blocks) });
   },
 
   async saveWorkout() {
     if (this.data.isSaving) return;
-    if (this.data.blocks.length === 0) {
-      wx.showToast({ title: '请先添加训练块', icon: 'none' });
-      return;
-    }
-    const hasValidSet = this.data.blocks.some((block) => block.sets.some((set) => (
-      (Number(set.weight_kg) || 0) > 0 || (Number(set.reps) || 0) > 0
-    )));
-    if (!hasValidSet) {
-      wx.showToast({ title: '请至少填写一组重量或次数', icon: 'none' });
+    const hasValid = this.data.blocks.some((block) => block.sets.some((set) => Number(set.reps) > 0));
+    if (!hasValid) {
+      wx.showToast({ title: '请至少记录一组次数', icon: 'none' });
       return;
     }
     this.setData({ isSaving: true });
-    const sessionId = await this.ensureSession();
-    if (!sessionId) {
-      this.setData({ isSaving: false });
-      return;
-    }
-    wx.showLoading({ title: '保存中' });
+    wx.showLoading({ title: '保存训练' });
     try {
-      const form = this.data.form;
-      await updateSession(sessionId, {
-        date: form.date,
-        title: form.title || '今日训练',
-        location: form.location,
-        goal_type: form.goal_type,
-        intent: buildIntent(form),
-        notes: form.note,
-      });
+      const sessionId = this.data.sessionId || await this.startWorkout();
+      if (!sessionId) throw new Error('Unable to create workout session');
       const blocks = this.data.blocks.slice();
       for (let i = 0; i < blocks.length; i += 1) {
         const block = blocks[i];
-        const hasUnsavedSet = block.sets.some((set) => !set.remote_id);
         let blockId = block.remote_id;
         if (!blockId) {
           blockId = await addBlock({
             session_id: sessionId,
-            order: block.order,
-            type: block.type,
+            order: i + 1,
+            type: 'single',
             title: block.title,
-            exercise_ids: block.exercises.map((item) => item._id),
+            exercise_ids: [block.exercises[0]._id],
             rest_seconds_between_rounds: 90,
             notes: '',
           });
           block.remote_id = blockId;
-          blocks[i] = block;
-          this.setData({ blocks: mapBlocksForView(blocks) });
         }
         for (let j = 0; j < block.sets.length; j += 1) {
           const set = block.sets[j];
-          const setPayload = {
+          const payload = {
             session_id: sessionId,
             block_id: blockId,
             exercise_id: set.exercise_id,
-            block_type: block.type,
-            round_index: set.round_index,
-            exercise_order_in_block: set.exercise_order_in_block,
+            block_type: 'single',
+            round_index: j + 1,
+            exercise_order_in_block: 1,
             set_index: j + 1,
             weight_kg: toNumber(set.weight_kg, 0),
             reps: toNumber(set.reps, 0),
             rpe: toNumber(set.rpe, 0),
-            is_warmup: set.is_warmup,
-            is_failure: set.is_failure,
+            is_warmup: false,
+            is_failure: false,
             rest_seconds_after: null,
             notes: '',
           };
-          if (set.remote_id) {
-            await updateSet(set.remote_id, setPayload);
-            continue;
-          }
-          const setId = await addSet(setPayload);
-          set.remote_id = setId;
-          block.sets[j] = set;
-          blocks[i] = block;
-          this.setData({ blocks: mapBlocksForView(blocks) });
+          if (set.remote_id) await updateSet(set.remote_id, payload);
+          else set.remote_id = await addSet(payload);
         }
-        if (blockId && hasUnsavedSet) {
-          await updateBlock(blockId, {
-            title: block.title,
-            exercise_ids: block.exercises.map((item) => item._id),
-          });
-        }
+        await updateBlock(blockId, { title: block.title, exercise_ids: [block.exercises[0]._id] });
       }
       await updateSession(sessionId, {
+        date: this.data.planDate,
         status: 'completed',
         ended_at: new Date(),
       });
-      try {
-        await wx.cloud.callFunction({ name: 'recalculateStats', data: {} });
-      } catch (error) {
-        console.warn('统计重算失败，可稍后手动重试', error);
-      }
-      wx.showToast({ title: '已保存', icon: 'success' });
-      this.setData({ sessionId: '', blocks: [], startDisabled: false });
-      this.loadRecentSessions();
+      try { await wx.cloud.callFunction({ name: 'recalculateStats' }); } catch (error) { console.warn(error); }
+      this.setData({ sessionId: '', blocks: [], prompt: '', planDate: formatDate(), mode: 'planning' });
+      await this.loadRecent();
+      await this.generatePlan(true);
+      wx.showToast({ title: '训练已保存', icon: 'success' });
     } catch (error) {
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      wx.showToast({ title: '保存失败，请重试', icon: 'none' });
       console.error(error);
     } finally {
       this.setData({ isSaving: false });
@@ -676,97 +281,78 @@ Page({
     }
   },
 
+  async restoreDraft() {
+    try {
+      const draft = await getLatestDraftSession();
+      if (!draft) return;
+      const bundle = await getSessionBundle(draft._id);
+      const blocks = [];
+      for (let i = 0; i < bundle.blocks.length; i += 1) {
+        const remote = bundle.blocks[i];
+        const id = (remote.exercise_ids || [])[0];
+        const exercise = await getExerciseById(id);
+        if (!exercise) continue;
+        const sets = bundle.sets.filter((set) => set.block_id === remote._id).map((set, index) => ({
+          local_id: `remote-${set._id}`,
+          remote_id: set._id,
+          set_index_local: index,
+          exercise_id: id,
+          exercise_name: exercise.name_zh || exercise.name,
+          round_index: index + 1,
+          exercise_order_in_block: 1,
+          weight_kg: String(set.weight_kg || ''),
+          reps: String(set.reps || ''),
+          rpe: String(set.rpe || ''),
+          is_warmup: false,
+          is_failure: false,
+        }));
+        blocks.push({
+          local_id: `remote-${remote._id}`,
+          remote_id: remote._id,
+          order: i + 1,
+          type: 'single',
+          title: remote.title,
+          exercises: [exercise],
+          sets,
+        });
+      }
+      this.setData({
+        sessionId: draft._id,
+        planDate: draft.date || formatDate(),
+        prompt: draft.notes || '',
+        blocks: mapBlocks(blocks),
+        mode: blocks.length ? 'training' : 'planning',
+      });
+    } catch (error) {
+      console.warn('恢复草稿失败', error);
+    }
+  },
+
   discardWorkout() {
-    if (!this.data.sessionId && this.data.blocks.length === 0) return;
     wx.showModal({
-      title: '放弃当前训练？',
-      content: '当前训练块和云端草稿都会删除，且无法恢复。',
+      title: '放弃这次训练？',
+      content: '已记录的草稿会被删除。',
       confirmText: '放弃',
       confirmColor: '#d92d20',
       success: async (result) => {
         if (!result.confirm) return;
-        wx.showLoading({ title: '清理草稿' });
         try {
           if (this.data.sessionId) {
             const bundle = await getSessionBundle(this.data.sessionId);
-            for (let i = 0; i < bundle.sets.length; i += 1) await deleteSet(bundle.sets[i]._id);
-            for (let i = 0; i < bundle.blocks.length; i += 1) await deleteBlock(bundle.blocks[i]._id);
+            for (const set of bundle.sets) await deleteSet(set._id);
+            for (const block of bundle.blocks) await deleteBlock(block._id);
             await removeWorkoutSession(this.data.sessionId);
           }
-          this.setData({ sessionId: '', blocks: [], startDisabled: false });
-          wx.showToast({ title: '已放弃', icon: 'success' });
+          this.setData({ sessionId: '', blocks: [], mode: 'planning' });
+          await this.generatePlan(true);
         } catch (error) {
-          wx.showToast({ title: '清理失败', icon: 'none' });
-          console.error(error);
-        } finally {
-          wx.hideLoading();
+          wx.showToast({ title: '放弃失败', icon: 'none' });
         }
       },
     });
   },
 
   goSessionDetail(event) {
-    const id = event.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/session-detail/session-detail?id=${id}` });
-  },
-
-  async copyRecentSession(event) {
-    const id = event.currentTarget.dataset.id;
-    if (!id) return;
-    if (this.data.sessionId || this.data.blocks.length > 0) {
-      const result = await new Promise((resolve) => {
-        wx.showModal({
-          title: '复制上次训练？',
-          content: '当前未保存的训练块会被替换，请确认已经不需要它们。',
-          confirmText: '替换',
-          success: resolve,
-          fail: () => resolve({ confirm: false }),
-        });
-      });
-      if (!result.confirm) return;
-    }
-
-    wx.showLoading({ title: '复制中' });
-    try {
-      const bundle = await getSessionBundle(id);
-      const nameMap = {};
-      for (let i = 0; i < bundle.sets.length; i += 1) {
-        const exerciseId = bundle.sets[i].exercise_id;
-        if (!nameMap[exerciseId]) nameMap[exerciseId] = await getExerciseName(exerciseId);
-      }
-      const blocks = bundle.blocks.map((block, blockIndex) => {
-        const sets = bundle.sets
-          .filter((set) => set.block_id === block._id)
-          .map((set, setIndex) => makeCopiedSet(set, nameMap[set.exercise_id] || set.exercise_id, setIndex));
-        const exerciseIds = block.exercise_ids || Array.from(new Set(sets.map((set) => set.exercise_id)));
-        return {
-          local_id: `copy-block-${block._id}-${Date.now()}-${blockIndex}`,
-          order: blockIndex + 1,
-          block_index: blockIndex,
-          type: block.type || 'single',
-          title: block.title || exerciseIds.map((exerciseId) => nameMap[exerciseId] || exerciseId).join(' + '),
-          exercises: exerciseIds.map((exerciseId) => ({
-            _id: exerciseId,
-            name: nameMap[exerciseId] || exerciseId,
-            name_zh: nameMap[exerciseId] || exerciseId,
-          })),
-          sets,
-        };
-      });
-      const sourceTitle = bundle.session && bundle.session.title ? bundle.session.title : '上次训练';
-      this.setData({
-        sessionId: '',
-        startDisabled: false,
-        blocks: mapBlocksForView(blocks),
-        'form.title': `${sourceTitle}（复制）`,
-        'form.date': formatDate(),
-      });
-      wx.showToast({ title: '已复制', icon: 'success' });
-    } catch (error) {
-      wx.showToast({ title: '复制失败', icon: 'none' });
-      console.error(error);
-    } finally {
-      wx.hideLoading();
-    }
+    wx.navigateTo({ url: `/pages/session-detail/session-detail?id=${event.currentTarget.dataset.id}` });
   },
 });

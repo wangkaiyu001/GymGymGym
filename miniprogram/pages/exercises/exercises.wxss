@@ -1,14 +1,12 @@
-.search { margin-top: 24rpx; }
-.quick-row { display: flex; align-items: center; gap: 16rpx; margin-top: 18rpx; }
-.favorite-count { color: #667085; font-size: 24rpx; }
-.h-scroll { white-space: nowrap; margin-top: 18rpx; }
+.search { margin-top: 22rpx; }
+.h-scroll { white-space: nowrap; margin-top: 16rpx; }
 .filter-row { display: flex; gap: 12rpx; }
-.exercise-card { margin-bottom: 18rpx; }
-.exercise-name { font-size: 32rpx; font-weight: 800; }
-.exercise-en { font-size: 24rpx; color: #667085; margin-top: 6rpx; }
-.card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10rpx; margin-left: 16rpx; }
-.favorite-btn { background: #f2f4f7; color: #344054; border-radius: 999rpx; padding: 10rpx 16rpx; font-size: 22rpx; }
-.favorite-btn.active { background: #fff7ed; color: #c2410c; }
-.tag { background: #ecfdf3; color: #027a48; border-radius: 999rpx; padding: 10rpx 16rpx; font-size: 22rpx; }
-.meta { margin-top: 18rpx; font-size: 24rpx; color: #475467; }
-.steps { margin-top: 14rpx; color: #667085; font-size: 24rpx; line-height: 1.6; }
+.exercise-card { display: flex; padding: 0; overflow: hidden; }
+.exercise-image { width: 210rpx; min-height: 220rpx; background: #f2f4f7; flex: none; }
+.exercise-body { padding: 22rpx; min-width: 0; }
+.exercise-name { font-size: 31rpx; font-weight: 800; }
+.exercise-en { margin-top: 5rpx; color: #667085; font-size: 22rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { margin-top: 14rpx; color: #2563eb; font-size: 23rpx; }
+.steps { margin-top: 12rpx; color: #475467; font-size: 23rpx; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.attribution { margin-top: 12rpx; color: #98a2b3; font-size: 18rpx; }
+.loading-more { padding: 28rpx; text-align: center; color: #98a2b3; font-size: 23rpx; }

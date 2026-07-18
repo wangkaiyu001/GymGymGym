@@ -15,6 +15,7 @@ const required = [
   'miniprogram/pages/profile/profile.js',
   'miniprogram/utils/profile-stats.js',
   'miniprogram/utils/training-reminders.js',
+  'miniprogram/utils/workout-planner.js',
   'miniprogram/pages/goals/goals.js',
   'cloudfunctions/getUserContext/index.js',
   'cloudfunctions/recalculateStats/index.js',
@@ -24,6 +25,8 @@ const required = [
   'tests/training-reminders.test.js',
   'tests/security-boundaries.test.js',
   'tests/workout-integrity.test.js',
+  'tests/workout-planner.test.js',
+  'tests/product-focus.test.js',
 ];
 
 let failed = false;
@@ -78,7 +81,6 @@ assertRegisteredComponent('miniprogram/pages/training/training.json', 'empty-sta
 assertRegisteredComponent('miniprogram/pages/training/training.json', 'exercise-picker', '/components/exercise-picker/exercise-picker');
 assertRegisteredComponent('miniprogram/pages/exercises/exercises.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/pages/profile/profile.json', 'empty-state', '/components/empty-state/empty-state');
-assertRegisteredComponent('miniprogram/pages/goals/goals.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/pages/session-detail/session-detail.json', 'empty-state', '/components/empty-state/empty-state');
 assertRegisteredComponent('miniprogram/components/exercise-picker/exercise-picker.json', 'empty-state', '/components/empty-state/empty-state');
 
