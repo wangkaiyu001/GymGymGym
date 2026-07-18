@@ -85,7 +85,16 @@ Page({
 
   async bootstrap() {
     try {
-      const context = await getUserContext();
+      const app = getApp();
+      let context = app.globalData.userContext;
+      if (!context) {
+        for (let attempt = 0; attempt < 8 && !context; attempt += 1) {
+          if (app.globalData.cloudReady === false) throw app.globalData.cloudError || new Error('CloudBase unavailable');
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          context = app.globalData.userContext;
+        }
+      }
+      if (!context) context = await getUserContext();
       getApp().globalData.userContext = context;
       this.setData({ user: context.user || {}, cloudError: '' });
       await Promise.all([this.restoreDraft(), this.loadRecent()]);
