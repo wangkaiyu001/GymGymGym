@@ -198,6 +198,8 @@ tcb db nosql execute --command '[{"TableName":"exercises","CommandType":"QUERY",
 wxe5658bb09f7c33f9
 ```
 
+V0.2 已在启动页增加明确错误提示；关联完成前，云函数请求不会进入函数执行日志。
+
 ### 7.1 官方 CI 上传
 
 本机未安装微信开发者工具时，可使用仓库内的 `scripts/upload-miniprogram.js` 和微信官方 `miniprogram-ci`：
@@ -219,4 +221,11 @@ npm run upload:miniprogram
 - 版本：`0.1.0`
 - 描述：`GymGymGym MVP 2026-07-16`
 - 完整包大小：127,841 bytes
+- 上传结果：`Mini Program upload completed`
+
+2026-07-18 22:43 已成功上传 V0.2 聚焦版：
+
+- 版本：`0.2.0`
+- 描述：`GymGymGym focused training V0.2`
+- 完整包大小：96,681 bytes
 - 上传结果：`Mini Program upload completed`
