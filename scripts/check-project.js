@@ -21,6 +21,7 @@ const required = [
   'cloudfunctions/recalculateStats/index.js',
   'database/security-rules.json',
   'scripts/upload-miniprogram.js',
+  'scripts/deploy-wechat-cloud.js',
   'tests/profile-stats.test.js',
   'tests/training-reminders.test.js',
   'tests/security-boundaries.test.js',

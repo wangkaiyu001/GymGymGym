@@ -8,6 +8,8 @@ Env Name: code-realtime
 Region: ap-shanghai
 ```
 
+> 2026-07-20 起，小程序端已切换到微信小程序后台原生开通的新环境 `cloudbase-d7g16mc3f74e58a55`。旧独立 CloudBase 环境保留为迁移来源；新环境需要通过微信官方 `miniprogram-ci` 部署云函数与初始化数据。
+
 ## 2. CLI / Codex Toolkit 状态
 
 本机已安装 CloudBase CLI：

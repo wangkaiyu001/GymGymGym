@@ -7,6 +7,7 @@
     "check": "node scripts/check-project.js",
     "test": "node tests/profile-stats.test.js && node tests/training-reminders.test.js && node tests/security-boundaries.test.js && node tests/workout-integrity.test.js && node tests/workout-planner.test.js && node tests/product-focus.test.js",
     "upload:miniprogram": "node scripts/upload-miniprogram.js",
+    "deploy:wechat-cloud": "node scripts/deploy-wechat-cloud.js",
     "normalize:exercises": "node scripts/normalize-exercises.js",
     "import:exercises": "node scripts/import-exercises.js",
     "setup:db": "node scripts/setup-cloudbase-db.js"

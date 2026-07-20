@@ -1,4 +1,4 @@
-const ENV_ID = 'code-realtime-d7gbuxrbze297e600';
+const ENV_ID = 'cloudbase-d7g16mc3f74e58a55';
 
 const GOAL_OPTIONS = [
   { value: 'hypertrophy', label: '增肌' },
