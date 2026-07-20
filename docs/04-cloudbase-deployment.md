@@ -238,3 +238,5 @@ npm run upload:miniprogram
 - 已重新部署 `getUserContext` 和 `recalculateStats`，两者状态均为 `Active`。
 - 已回读确认 7 个业务集合存在，`exercises` 为 1325 条（1324 动作 + 1 marker）。
 - 已于 2026-07-20 15:11 上传开发版本 `0.2.3`，描述 `GymGymGym V0.2 personal CloudBase`，完整包 96,681 bytes。
+- 2026-07-20 16:15 按官方 `cloud-functions` 安全规则文档修复环境级函数权限：保留默认显式登录规则，仅将 `getUserContext` 和 `recalculateStats` 的 `invoke` 设为 `true`，使微信小程序原生 `wx.cloud.callFunction` 可调用，同时其他函数不公开。
+- 2026-07-20 16:16 上传开发版本 `0.2.4`，描述 `GymGymGym function permission fix`，完整包 96,681 bytes。
