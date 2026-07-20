@@ -8,7 +8,6 @@ Env Name: code-realtime
 Region: ap-shanghai
 ```
 
-> 2026-07-20 起，小程序端已切换到微信小程序后台原生开通的新环境 `cloudbase-d7g16mc3f74e58a55`。旧独立 CloudBase 环境保留为迁移来源；新环境需要通过微信官方 `miniprogram-ci` 部署云函数与初始化数据。
 
 ## 2. CLI / Codex Toolkit 状态
 
@@ -231,3 +230,11 @@ npm run upload:miniprogram
 - 描述：`GymGymGym focused training V0.2`
 - 完整包大小：96,681 bytes
 - 上传结果：`Mini Program upload completed`
+
+2026-07-20 已按最终部署决定恢复使用个人环境 `code-realtime-d7gbuxrbze297e600`：
+
+- 小程序 `app.js`、`constants.js` 与 `cloudbaserc.json` 已固定为该环境。
+- 通过 `ModifyEnv` 请求提交了 AppID `wxe5658bb09f7c33f9` 与个人环境的关联。
+- 已重新部署 `getUserContext` 和 `recalculateStats`，两者状态均为 `Active`。
+- 已回读确认 7 个业务集合存在，`exercises` 为 1325 条（1324 动作 + 1 marker）。
+- 已于 2026-07-20 15:11 上传开发版本 `0.2.3`，描述 `GymGymGym V0.2 personal CloudBase`，完整包 96,681 bytes。

@@ -4,7 +4,23 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const db = cloud.database();
 
+const REQUIRED_COLLECTIONS = ['users', 'exercises', 'workout_sessions', 'workout_blocks', 'workout_sets', 'exercise_stats'];
+
+async function ensureCollections() {
+  for (const name of REQUIRED_COLLECTIONS) {
+    try {
+      await db.createCollection(name);
+    } catch (error) {
+      const message = String(error.errMsg || error.message || error);
+      if (!/exist|already|duplicate/i.test(message)) {
+        try { await db.collection(name).limit(1).get(); } catch (readError) { throw error; }
+      }
+    }
+  }
+}
+
 exports.main = async () => {
+  await ensureCollections();
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
   const now = new Date();

@@ -56,7 +56,7 @@ CloudBase 环境：
 - CloudBase CLI 已安装，版本为 `3.5.0`。
 - 项目配置、脚本和小程序端均使用环境 `code-realtime-d7gbuxrbze297e600`。
 - `getUserContext` 和 `recalculateStats` 此前已部署并验证过 `Deployment completed`。
-- 2026-07-16 19:33 已通过 CloudBase MCP 再次上传两个函数当前代码，并确认两者均为 `Active`。
+- 2026-07-20 最终固定使用个人环境 `code-realtime-d7gbuxrbze297e600`，两个函数均重新部署并为 `Active`。
 - 2026-07-16 19:57 已部署并回读确认 `recalculateStats` 只统计 completed 训练，草稿不会进入档案。
 - 7 个数据库集合均已存在，安全权限已按仓库规则更新为 `CUSTOM` 并回读验证。
 - 最近一次再次验证时，本机 CLI 出现过登录态失效提示：
@@ -180,7 +180,7 @@ git push origin main
 
 也可以使用 `npm run upload:miniprogram` 自动上传。当前公网 IP `116.6.206.132` 已加入白名单；公网 IP 变化时，以 CI 报错中的新地址更新小程序“代码上传 IP 白名单”。
 
-2026-07-16 23:19 已成功上传微信小程序代码版本 `0.1.0`（描述：`GymGymGym MVP 2026-07-16`）。后续可在微信公众平台将该版本设为体验版，或提交审核。
+2026-07-20 15:11 已成功上传微信小程序代码版本 `0.2.3`（描述：`GymGymGym V0.2 personal CloudBase`）。后续可在微信公众平台将该版本设为体验版，或提交审核。
 
 3. 确认小程序绑定 CloudBase 环境：
 
